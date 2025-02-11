@@ -1,0 +1,58 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.12.35527.113 d17.12
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HotelBookingPlatform.API", "HotelBookingPlatform.API\HotelBookingPlatform.API.csproj", "{D7EFDE86-6300-49A2-9AB0-AA5924F4972C}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HotelBookingPlatform.Application", "HotelBookingPlatform.Application\HotelBookingPlatform.Application.csproj", "{B1A12B9D-1391-4904-8496-55283B900B16}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HotelBookingPlatform.Domain", "HotelBookingPlatform.Domain\HotelBookingPlatform.Domain.csproj", "{FD6B0C8A-B850-4631-8471-1E6E0AB9905A}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HotelBookingPlatform.Infrastructure", "HotelBookingPlatform.Infrastructure\HotelBookingPlatform.Infrastructure.csproj", "{AC28E12B-B088-457A-8C60-7A24FB2FC9A7}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HotelBookingPlatformAPI.Test", "HotelBookingPlatformAPI.Test\HotelBookingPlatformAPI.Test.csproj", "{1DEEECEE-815F-4281-A14E-F839647F44F5}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HotelBookingPlatformApplication.Test", "HotelBookingPlatformApplication.Test\HotelBookingPlatformApplication.Test.csproj", "{11E7DDAB-27C2-4998-AC2E-80606D979661}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HotelBookingPlatformInfrastructure.Test", "HotelBookingPlatformInfrastructure.Test\HotelBookingPlatformInfrastructure.Test.csproj", "{7E67D3ED-D04B-4295-ACCA-67AC75988192}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{D7EFDE86-6300-49A2-9AB0-AA5924F4972C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D7EFDE86-6300-49A2-9AB0-AA5924F4972C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D7EFDE86-6300-49A2-9AB0-AA5924F4972C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D7EFDE86-6300-49A2-9AB0-AA5924F4972C}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B1A12B9D-1391-4904-8496-55283B900B16}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B1A12B9D-1391-4904-8496-55283B900B16}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B1A12B9D-1391-4904-8496-55283B900B16}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B1A12B9D-1391-4904-8496-55283B900B16}.Release|Any CPU.Build.0 = Release|Any CPU
+		{FD6B0C8A-B850-4631-8471-1E6E0AB9905A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{FD6B0C8A-B850-4631-8471-1E6E0AB9905A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{FD6B0C8A-B850-4631-8471-1E6E0AB9905A}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{FD6B0C8A-B850-4631-8471-1E6E0AB9905A}.Release|Any CPU.Build.0 = Release|Any CPU
+		{AC28E12B-B088-457A-8C60-7A24FB2FC9A7}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{AC28E12B-B088-457A-8C60-7A24FB2FC9A7}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{AC28E12B-B088-457A-8C60-7A24FB2FC9A7}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{AC28E12B-B088-457A-8C60-7A24FB2FC9A7}.Release|Any CPU.Build.0 = Release|Any CPU
+		{1DEEECEE-815F-4281-A14E-F839647F44F5}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{1DEEECEE-815F-4281-A14E-F839647F44F5}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{1DEEECEE-815F-4281-A14E-F839647F44F5}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{1DEEECEE-815F-4281-A14E-F839647F44F5}.Release|Any CPU.Build.0 = Release|Any CPU
+		{11E7DDAB-27C2-4998-AC2E-80606D979661}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{11E7DDAB-27C2-4998-AC2E-80606D979661}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{11E7DDAB-27C2-4998-AC2E-80606D979661}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{11E7DDAB-27C2-4998-AC2E-80606D979661}.Release|Any CPU.Build.0 = Release|Any CPU
+		{7E67D3ED-D04B-4295-ACCA-67AC75988192}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{7E67D3ED-D04B-4295-ACCA-67AC75988192}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{7E67D3ED-D04B-4295-ACCA-67AC75988192}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{7E67D3ED-D04B-4295-ACCA-67AC75988192}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal

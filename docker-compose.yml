@@ -1,0 +1,38 @@
+services:
+  # PostgreSQL database service
+  db:
+    image: postgres:16.3
+    container_name: postgres-db
+    environment:
+      POSTGRES_DB: lepointdb
+      POSTGRES_USER: admin
+      POSTGRES_PASSWORD: adminpassword
+    networks:
+      - backend
+    volumes:
+      - db-data:/var/lib/postgresql/data
+    ports:
+      - '5432:5432'
+
+  # pgAdmin service for database management
+  pgadmin:
+    image: dpage/pgadmin4
+    container_name: pgadmin4_container
+    restart: always
+    networks:
+      - backend
+    ports:
+      - "8888:80"
+    environment:
+      PGADMIN_DEFAULT_EMAIL: admin@gmail.com
+      PGADMIN_DEFAULT_PASSWORD: adminpassword
+    volumes:
+      - pgadmin-data:/var/lib/pgadmin
+
+volumes:
+  db-data:
+  pgadmin-data:
+
+networks:
+  backend:
+    driver: bridge

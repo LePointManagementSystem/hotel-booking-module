@@ -1,0 +1,37 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.AspNetCore.Identity.EntityFrameworkCore" Version="8.0.12" />
+    <PackageReference Include="System.IdentityModel.Tokens.Jwt" Version="8.4.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="Abstracts\" />
+    <Folder Include="DTOs\InvoiceRecord\" />
+    <Folder Include="DTOs\Hotel\" />
+    <Folder Include="DTOs\HomePage\" />
+    <Folder Include="DTOs\Discount\" />
+    <Folder Include="DTOs\City\" />
+    <Folder Include="DTOs\Booking\" />
+    <Folder Include="DTOs\Amenity\" />
+    <Folder Include="DTOs\Owner\" />
+    <Folder Include="DTOs\Review\" />
+    <Folder Include="DTOs\RoomClass\" />
+    <Folder Include="DTOs\Room\" />
+    <Folder Include="Entities\" />
+    <Folder Include="Enums\" />
+    <Folder Include="Exceptions\" />
+    <Folder Include="Helpers\" />
+    <Folder Include="IGenericRepositories\" />
+    <Folder Include="ILogger\" />
+    <Folder Include="IServices\" />
+    <Folder Include="Shared\" />
+  </ItemGroup>
+
+</Project>
