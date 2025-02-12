@@ -6,4 +6,30 @@
     <Nullable>enable</Nullable>
   </PropertyGroup>
 
+  <ItemGroup>
+    <Folder Include="Core\Abstracts\IBookingManagementService\" />
+    <Folder Include="Core\Abstracts\IHotelManagementService\" />
+    <Folder Include="Core\Abstracts\IRoomClassManagementService\" />
+    <Folder Include="Core\Implementations\HotelManagementService\" />
+    <Folder Include="Core\Implementations\BookingManagementService\" />
+    <Folder Include="Core\Implementations\RoomClassManagementService\" />
+    <Folder Include="Extentions\" />
+    <Folder Include="Helpers\" />
+    <Folder Include="Validator\" />
+    <Folder Include="Shared\" />
+    <Folder Include="Services\" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="AutoMapper" Version="13.0.1" />
+    <PackageReference Include="CloudinaryDotNet" Version="1.27.4" />
+    <PackageReference Include="FluentValidation" Version="11.11.0" />
+    <PackageReference Include="FluentValidation.AspNetCore" Version="11.3.0" />
+    <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="8.0.13" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\HotelBookingPlatform.Infrastructure\HotelBookingPlatform.Infrastructure.csproj" />
+  </ItemGroup>
+
 </Project>
