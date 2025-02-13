@@ -1,10 +1,16 @@
-﻿using System.Net.Mail;
-using System.Net;
+﻿using MailKit.Net.Smtp;
+using MailKit.Security;
+using MimeKit;
+using Microsoft.Extensions.Options;
+using HotelBookingPlatform.Application.Services;
+
 namespace HotelBookingPlatform.Application.Services;
+
 public class EmailService : IEmailService
 {
     private readonly EmailSettings _emailSettings;
     private readonly ILog _log;
+
     public EmailService(IOptions<EmailSettings> emailSettings, ILog log)
     {
         _emailSettings = emailSettings.Value;
@@ -19,69 +25,58 @@ public class EmailService : IEmailService
             return;
         }
 
-        var mailMessage = CreateMailMessage(confirmation);
-        using var smtpClient = CreateSmtpClient();
+        var email = CreateMimeMessage(confirmation);
 
         try
         {
-            await smtpClient.SendMailAsync(mailMessage);
+            using var smtp = new SmtpClient();
+            await smtp.ConnectAsync(_emailSettings.SmtpServer, _emailSettings.Port, SecureSocketOptions.StartTls);
+            await smtp.AuthenticateAsync(_emailSettings.Username, _emailSettings.Password);
+            await smtp.SendAsync(email);
+            await smtp.DisconnectAsync(true);
+
             _log.Log($"Confirmation email sent to {confirmation.UserEmail}.", "info");
-        }
-        catch (SmtpException smtpEx)
-        {
-            _log.Log($"SMTP Error while sending confirmation email: {smtpEx.Message}", "error");
         }
         catch (Exception ex)
         {
-            _log.Log($"General Error while sending confirmation email: {ex.Message}", "error");
-        }
-        finally
-        {
-            mailMessage.Dispose(); 
+            _log.Log($"Error while sending email: {ex.Message}", "error");
         }
     }
 
-    private MailMessage CreateMailMessage(BookingConfirmation confirmation)
+    private MimeMessage CreateMimeMessage(BookingConfirmation confirmation)
     {
-        return new MailMessage
-        {
-            From = new MailAddress(_emailSettings.FromAddress, "Hotel Booking Platform"),
-            Subject = "Booking Confirmation",
-            Body = GenerateEmailBody(confirmation),
-            IsBodyHtml = true,
-            To = { confirmation.UserEmail }
-        };
-    }
+        var email = new MimeMessage();
+        email.From.Add(new MailboxAddress("Hotel Booking Platform", _emailSettings.FromAddress));
+        email.To.Add(MailboxAddress.Parse(confirmation.UserEmail));
+        email.Subject = "Booking Confirmation";
 
-    private SmtpClient CreateSmtpClient()
-    {
-        return new SmtpClient(_emailSettings.SmtpServer, _emailSettings.Port)
+        var bodyBuilder = new BodyBuilder
         {
-            Credentials = new NetworkCredential(_emailSettings.Username, _emailSettings.Password),
-            EnableSsl = true
+            HtmlBody = GenerateEmailBody(confirmation)
         };
+
+        email.Body = bodyBuilder.ToMessageBody();
+        return email;
     }
 
     private string GenerateEmailBody(BookingConfirmation confirmation)
     {
         return $@"
-                <html>
-                <body>
-                    <h2>Booking Confirmation</h2>
- 
-                    <p><strong>Confirmation Number:</strong> {confirmation.ConfirmationNumber}</p>
-                    <p><strong>Hotel Name:</strong> {confirmation.HotelName}</p>
-                    <p><strong>Hotel Address:</strong> {confirmation.HotelAddress}</p>
-                    <p><strong>Room Type:</strong> {confirmation.RoomType}</p>
-                    <p><strong>Check-In Date:</strong> {confirmation.CheckInDate:yyyy-MM-dd HH:mm:ss}</p>
-                    <p><strong>Check-Out Date:</strong> {confirmation.CheckOutDate:yyyy-MM-dd HH:mm:ss}</p>
-                    <p><strong>Total Price:</strong> {confirmation.TotalPrice:C}</p>
-                    <p><strong>Discount Percentage:</strong> {confirmation.Percentage}%</p>
-                    <p><strong>Price After Discount:</strong> {confirmation.AfterDiscountedPrice:C}</p>
-                    <p><strong>User Email:</strong> {confirmation.UserEmail}</p>
-
-                    <p>Thank you for booking with us!</p>
-                </body>
-                </html>";
+            <html>
+            <body>
+                <h2>Booking Confirmation</h2>
+                <p><strong>Confirmation Number:</strong> {confirmation.ConfirmationNumber}</p>
+                <p><strong>Hotel Name:</strong> {confirmation.HotelName}</p>
+                <p><strong>Hotel Address:</strong> {confirmation.HotelAddress}</p>
+                <p><strong>Room Type:</strong> {confirmation.RoomType}</p>
+                <p><strong>Check-In Date:</strong> {confirmation.CheckInDate:yyyy-MM-dd HH:mm:ss}</p>
+                <p><strong>Check-Out Date:</strong> {confirmation.CheckOutDate:yyyy-MM-dd HH:mm:ss}</p>
+                <p><strong>Total Price:</strong> {confirmation.TotalPrice:C}</p>
+                <p><strong>Discount Percentage:</strong> {confirmation.Percentage}%</p>
+                <p><strong>Price After Discount:</strong> {confirmation.AfterDiscountedPrice:C}</p>
+                <p><strong>User Email:</strong> {confirmation.UserEmail}</p>
+                <p>Thank you for booking with us!</p>
+            </body>
+            </html>";
     }
 }

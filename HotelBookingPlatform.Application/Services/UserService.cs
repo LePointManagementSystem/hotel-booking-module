@@ -7,10 +7,11 @@ public class UserService : IUserService
     {
         _userManager = userManager;
         _tokenService = tokenService;
+        JwtSecurityTokenHandler.DefaultInboundClaimTypeMap.Clear();
     }
     public async Task<AuthModel> RegisterAsync(RegisterModel model)
     {
-        var DeafaultRole = Domain.Enums.Role.User.ToString();
+        var DefaultRole = Domain.Enums.Role.User.ToString();
         if (await _userManager.FindByEmailAsync(model.Email) is not null)
             throw new BadRequestException("Email is already registered!");
 
@@ -30,7 +31,7 @@ public class UserService : IUserService
             throw new BadRequestException(errors);
         }
 
-        await _userManager.AddToRoleAsync(user, DeafaultRole);
+        await _userManager.AddToRoleAsync(user, DefaultRole);
 
         var jwtSecurityToken = await _tokenService.CreateJwtToken(user);
 
@@ -43,7 +44,7 @@ public class UserService : IUserService
             Email = user.Email,
             ExpiresOn = jwtSecurityToken.ValidTo,
             IsAuthenticated = true,
-            Roles = new List<string> { DeafaultRole },
+            Roles = new List<string> { DefaultRole },
             Token = new JwtSecurityTokenHandler().WriteToken(jwtSecurityToken),
             Username = user.UserName,
             Message = "Registration successful.",

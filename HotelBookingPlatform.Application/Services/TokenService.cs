@@ -1,4 +1,16 @@
-﻿namespace HotelBookingPlatform.Application.Services;
+﻿using System.IdentityModel.Tokens.Jwt;
+using System.Security.Claims;
+using System.Security.Cryptography;
+using System.Text;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.Extensions.Options;
+using Microsoft.IdentityModel.Tokens;
+using HotelBookingPlatform.Application.Services;
+
+
+namespace HotelBookingPlatform.Application.Services;
+
 public class TokenService : ITokenService
 {
     private readonly UserManager<LocalUser> _userManager;
@@ -12,23 +24,24 @@ public class TokenService : ITokenService
         _roleManager = roleManager;
         _jwt = jwt.Value;
         _httpContextAccessor = httpContextAccessor;
+
+        // Prevents automatic JWT claim transformations (avoids unexpected claim mismatches)
+        JwtSecurityTokenHandler.DefaultInboundClaimTypeMap.Clear();
     }
+
     public async Task<JwtSecurityToken> CreateJwtToken(LocalUser user)
     {
         var userClaims = await _userManager.GetClaimsAsync(user);
         var roles = await _userManager.GetRolesAsync(user);
-        var roleClaims = new List<Claim>();
+        var roleClaims = roles.Select(role => new Claim(ClaimTypes.Role, role)).ToList();
 
-        foreach (var role in roles)
-            roleClaims.Add(new Claim(ClaimTypes.Role, role));
-
-        var claims = new[]
+        var claims = new List<Claim>
         {
-                new Claim(JwtRegisteredClaimNames.Sub, user.UserName),
-                new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
-                new Claim(JwtRegisteredClaimNames.Email, user.Email),
-                new Claim(ClaimTypes.NameIdentifier, user.Id)
-            }
+            new(JwtRegisteredClaimNames.Sub, user.UserName),
+            new(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
+            new(JwtRegisteredClaimNames.Email, user.Email),
+            new(ClaimTypes.NameIdentifier, user.Id)
+        }
         .Union(userClaims)
         .Union(roleClaims);
 
@@ -39,11 +52,13 @@ public class TokenService : ITokenService
             issuer: _jwt.Issuer,
             audience: _jwt.Audience,
             claims: claims,
-            expires: DateTime.Now.AddDays(_jwt.DurationInDays),
-            signingCredentials: signingCredentials);
+            expires: DateTime.UtcNow.AddDays(_jwt.DurationInDays),
+            signingCredentials: signingCredentials
+        );
 
         return jwtSecurityToken;
     }
+
     public async Task<AuthModel> RefreshTokenAsync(string token)
     {
         var authModel = new AuthModel();
@@ -64,7 +79,7 @@ public class TokenService : ITokenService
             return authModel;
         }
 
-        refreshToken.RevokedOn = DateTime.UtcNow;
+        refreshToken.RevokedOn = DateTime.UtcNow; 
 
         var newRefreshToken = GenerateRefreshToken();
         user.RefreshTokens.Add(newRefreshToken);
@@ -75,13 +90,13 @@ public class TokenService : ITokenService
         authModel.Token = new JwtSecurityTokenHandler().WriteToken(jwtToken);
         authModel.Email = user.Email;
         authModel.Username = user.UserName;
-        var roles = await _userManager.GetRolesAsync(user);
-        authModel.Roles = roles.ToList();
+        authModel.Roles = (await _userManager.GetRolesAsync(user)).ToList();
         authModel.RefreshToken = newRefreshToken.Token;
         authModel.RefreshTokenExpiration = newRefreshToken.ExpiresOn;
 
         return authModel;
     }
+
     public async Task<bool> RevokeTokenAsync(string token)
     {
         var user = await _userManager.Users.SingleOrDefaultAsync(u => u.RefreshTokens.Any(t => t.Token == token));
@@ -94,27 +109,27 @@ public class TokenService : ITokenService
         if (!refreshToken.IsActive)
             return false;
 
-        refreshToken.RevokedOn = DateTime.UtcNow;
-
+        refreshToken.RevokedOn = DateTime.UtcNow; 
         await _userManager.UpdateAsync(user);
 
         return true;
     }
+
     public RefreshToken GenerateRefreshToken()
     {
-        var randomNumber = new byte[32];
+        var randomBytes = new byte[32];
 
-        using var generator = new RNGCryptoServiceProvider();
-
-        generator.GetBytes(randomNumber);
+        using var rng = RandomNumberGenerator.Create();
+        rng.GetBytes(randomBytes);
 
         return new RefreshToken
         {
-            Token = Convert.ToBase64String(randomNumber),
-            ExpiresOn = DateTime.UtcNow.AddDays(10),
-            CreatedOn = DateTime.UtcNow
+            Token = Convert.ToBase64String(randomBytes),
+            ExpiresOn = DateTime.UtcNow.AddDays(10), 
+            CreatedOn = DateTime.UtcNow 
         };
     }
+
     public void SetRefreshTokenInCookie(string refreshToken, DateTime expires)
     {
         var httpContext = _httpContextAccessor.HttpContext;
@@ -124,12 +139,13 @@ public class TokenService : ITokenService
         var cookieOptions = new CookieOptions
         {
             HttpOnly = true,
-            Expires = expires.ToLocalTime(),
+            Expires = expires.ToUniversalTime(), 
             Secure = true,
             IsEssential = true,
-            SameSite = SameSiteMode.None
+            SameSite = SameSiteMode.Lax
         };
 
         httpContext.Response.Cookies.Append("refreshToken", refreshToken, cookieOptions);
     }
 }
+

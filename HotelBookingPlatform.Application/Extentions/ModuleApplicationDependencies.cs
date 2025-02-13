@@ -5,19 +5,21 @@ using HotelBookingPlatform.Application.Core.Abstracts.RoomClassManagementService
 using HotelBookingPlatform.Application.Core.Implementations.BookingManagementService;
 using HotelBookingPlatform.Application.Core.Implementations.HotelManagementService;
 using HotelBookingPlatform.Application.Core.Implementations.RoomClassManagementService;
+using System.Reflection;
+using FluentValidation;
+using Microsoft.Extensions.DependencyInjection;
+
 
 namespace HotelBookingPlatform.Application.Extentions;
+
 public static class ModuleApplicationDependencies
 {
     public static IServiceCollection AddApplicationDependencies(this IServiceCollection services)
     {
         services.AddHttpContextAccessor();
 
-        services.AddFluentValidation(fv =>
-        {
-            fv.RegisterValidatorsFromAssemblyContaining<OwnerValidator>();
-            fv.RegisterValidatorsFromAssemblyContaining<RegisterUserValidator>();
-        });
+        services.AddValidatorsFromAssemblyContaining<OwnerValidator>();
+        services.AddValidatorsFromAssemblyContaining<RegisterUserValidator>();
 
         services.AddScoped<IPriceCalculationService, PriceCalculationService>();
         services.AddScoped<IConfirmationNumberGeneratorService, ConfirmationNumberGeneratorService>();
@@ -41,9 +43,7 @@ public static class ModuleApplicationDependencies
         services.AddScoped<IHotelReviewService, HotelReviewService>();
         services.AddScoped<IHotelRoomService, HotelRoomService>();
 
-
         services.AddAutoMapper(Assembly.GetExecutingAssembly());
-        services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
 
         services.AddScoped<IValidator<HotelCreateRequest>, HotelCreateRequestValidator>();
 

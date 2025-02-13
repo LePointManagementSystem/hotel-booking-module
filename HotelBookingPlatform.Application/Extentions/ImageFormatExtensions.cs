@@ -1,4 +1,8 @@
 ﻿namespace HotelBookingPlatform.Application.Extentions;
+
+/// <summary>
+/// Provides extension methods for converting supported image formats to file extensions.
+/// </summary>
 public static class ImageFormatExtensions
 {
     public static string ToExtension(this SupportedImageFormats format)
