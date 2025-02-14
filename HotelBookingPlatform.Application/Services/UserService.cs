@@ -1,17 +1,26 @@
-﻿namespace HotelBookingPlatform.Application.Services;
+﻿using Microsoft.AspNetCore.Identity;
+
+namespace HotelBookingPlatform.Application.Services;
 public class UserService : IUserService
 {
     private readonly UserManager<LocalUser> _userManager;
+    private readonly RoleManager<IdentityRole> _roleManager;
     private readonly ITokenService _tokenService;
-    public UserService(UserManager<LocalUser> userManager, ITokenService tokenService)
+    public UserService(UserManager<LocalUser> userManager, RoleManager<IdentityRole> roleManager, ITokenService tokenService)
     {
         _userManager = userManager;
+        _roleManager = roleManager;
         _tokenService = tokenService;
         JwtSecurityTokenHandler.DefaultInboundClaimTypeMap.Clear();
     }
     public async Task<AuthModel> RegisterAsync(RegisterModel model)
     {
-        var DefaultRole = Domain.Enums.Role.User.ToString();
+        var validRoles = new List<string> { "Admin", "User" };
+        if (!validRoles.Contains(model.Role))
+        {
+            throw new BadRequestException("Invalid role. Allowed roles are 'Admin' or 'User'.");
+        }
+
         if (await _userManager.FindByEmailAsync(model.Email) is not null)
             throw new BadRequestException("Email is already registered!");
 
@@ -31,7 +40,12 @@ public class UserService : IUserService
             throw new BadRequestException(errors);
         }
 
-        await _userManager.AddToRoleAsync(user, DefaultRole);
+        if (!await _roleManager.RoleExistsAsync(model.Role))
+        {
+            await _roleManager.CreateAsync(new IdentityRole(model.Role));
+        }
+
+        await _userManager.AddToRoleAsync(user, model.Role);
 
         var jwtSecurityToken = await _tokenService.CreateJwtToken(user);
 
@@ -44,7 +58,7 @@ public class UserService : IUserService
             Email = user.Email,
             ExpiresOn = jwtSecurityToken.ValidTo,
             IsAuthenticated = true,
-            Roles = new List<string> { DefaultRole },
+            Roles = new List<string> { model.Role },
             Token = new JwtSecurityTokenHandler().WriteToken(jwtSecurityToken),
             Username = user.UserName,
             Message = "Registration successful.",
