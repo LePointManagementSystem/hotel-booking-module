@@ -12,6 +12,12 @@
         {
             base.OnModelCreating(modelBuilder);
 
+            modelBuilder.Entity<Hotel>()
+            .HasOne(h => h.Owner)
+            .WithMany(o => o.Hotels)
+            .HasForeignKey(h => h.OwnerID)
+            .OnDelete(DeleteBehavior.Cascade);
+
             modelBuilder.ApplyConfiguration(new HotelConfiguration());
             modelBuilder.ApplyConfiguration(new RoomClassConfiguration());
             modelBuilder.ApplyConfiguration(new RoomConfiguration());
@@ -20,7 +26,7 @@
             modelBuilder.ApplyConfiguration(new ReviewConfiguration());
         }
         public DbSet<Hotel> Hotels { get; set; }
-        public DbSet<Owner> owners { get; set; }
+        public DbSet<Owner> Owners { get; set; }
         public DbSet<City> Cities { get; set; }
         public DbSet<Booking> Bookings { get; set; }
         public DbSet<LocalUser> LocalUsers { get; set; }
