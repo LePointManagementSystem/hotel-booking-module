@@ -1,4 +1,7 @@
 using Serilog;
+using AutoMapper;
+using HotelBookingPlatform.API.Profiles;
+
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -10,6 +13,9 @@ builder.Host.UseSerilog();
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
+builder.Services.AddAutoMapper(typeof(CityMappingProfile));
+
+
 
 // Add custom dependencies
 builder.Services.AddApplicationDependencies()
@@ -33,5 +39,6 @@ app.UseHttpsRedirection();
 app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();
+
 
 app.Run();

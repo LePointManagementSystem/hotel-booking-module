@@ -3,10 +3,12 @@ namespace HotelBookingPlatform.Application.Core.Implementations;
 public class OwnerService : BaseService<Owner>, IOwnerService
 {
     private readonly EntityValidator<Owner> _ownerValidator;
-    public OwnerService(IUnitOfWork<Owner> unitOfWork, IMapper mapper)
+    private readonly ILog _logger;
+    public OwnerService(IUnitOfWork<Owner> unitOfWork, IMapper mapper, ILog logger)
         : base(unitOfWork, mapper)
     {
         _ownerValidator = new EntityValidator<Owner>(_unitOfWork.OwnerRepository);
+        _logger = logger ?? throw new ArgumentNullException(nameof(logger));
     }
     public async Task<OwnerDto> GetOwnerAsync(int id)
     {
@@ -15,6 +17,7 @@ public class OwnerService : BaseService<Owner>, IOwnerService
     }
     public async Task<OwnerDto> CreateOwnerAsync(OwnerCreateDto request)
     {
+        
         var owner = _mapper.Map<Owner>(request);
         _ownerValidator.ValidateEntity(owner);
 
