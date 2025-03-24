@@ -3,6 +3,7 @@ using System;
 using HotelBookingPlatform.Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -11,9 +12,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace HotelBookingPlatform.Infrastructure.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250321044612_AddCINToLocalUser")]
+    partial class AddCINToLocalUser
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -88,12 +91,6 @@ namespace HotelBookingPlatform.Infrastructure.Migrations
                         .HasMaxLength(50)
                         .HasColumnType("character varying(50)");
 
-                    b.Property<string>("CreatedById")
-                        .HasColumnType("text");
-
-                    b.Property<Guid?>("GuestId")
-                        .HasColumnType("uuid");
-
                     b.Property<int>("HotelId")
                         .HasColumnType("integer");
 
@@ -114,10 +111,6 @@ namespace HotelBookingPlatform.Infrastructure.Migrations
 
                     b.HasIndex("ConfirmationNumber")
                         .IsUnique();
-
-                    b.HasIndex("CreatedById");
-
-                    b.HasIndex("GuestId");
 
                     b.HasIndex("HotelId");
 
@@ -197,35 +190,6 @@ namespace HotelBookingPlatform.Infrastructure.Migrations
                     b.HasIndex("RoomID");
 
                     b.ToTable("Discounts");
-                });
-
-            modelBuilder.Entity("HotelBookingPlatform.Domain.Entities.Guest", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid");
-
-                    b.Property<string>("CIN")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<string>("Email")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<string>("FirstName")
-                        .IsRequired()
-                        .HasMaxLength(50)
-                        .HasColumnType("character varying(50)");
-
-                    b.Property<string>("LastName")
-                        .IsRequired()
-                        .HasMaxLength(50)
-                        .HasColumnType("character varying(50)");
-
-                    b.HasKey("Id");
-
-                    b.ToTable("Guests");
                 });
 
             modelBuilder.Entity("HotelBookingPlatform.Domain.Entities.Hotel", b =>
@@ -356,6 +320,11 @@ namespace HotelBookingPlatform.Infrastructure.Migrations
 
                     b.Property<int>("AccessFailedCount")
                         .HasColumnType("integer");
+
+                    b.Property<string>("CIN")
+                        .IsRequired()
+                        .HasMaxLength(10)
+                        .HasColumnType("character varying(10)");
 
                     b.Property<string>("ConcurrencyStamp")
                         .IsConcurrencyToken()
@@ -731,16 +700,6 @@ namespace HotelBookingPlatform.Infrastructure.Migrations
 
             modelBuilder.Entity("HotelBookingPlatform.Domain.Entities.Booking", b =>
                 {
-                    b.HasOne("HotelBookingPlatform.Domain.Entities.LocalUser", "CreatedBy")
-                        .WithMany()
-                        .HasForeignKey("CreatedById")
-                        .OnDelete(DeleteBehavior.Restrict);
-
-                    b.HasOne("HotelBookingPlatform.Domain.Entities.Guest", "Guest")
-                        .WithMany("Bookings")
-                        .HasForeignKey("GuestId")
-                        .OnDelete(DeleteBehavior.Restrict);
-
                     b.HasOne("HotelBookingPlatform.Domain.Entities.Hotel", "Hotel")
                         .WithMany("Bookings")
                         .HasForeignKey("HotelId")
@@ -752,10 +711,6 @@ namespace HotelBookingPlatform.Infrastructure.Migrations
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
-
-                    b.Navigation("CreatedBy");
-
-                    b.Navigation("Guest");
 
                     b.Navigation("Hotel");
 
@@ -959,11 +914,6 @@ namespace HotelBookingPlatform.Infrastructure.Migrations
             modelBuilder.Entity("HotelBookingPlatform.Domain.Entities.City", b =>
                 {
                     b.Navigation("Hotels");
-                });
-
-            modelBuilder.Entity("HotelBookingPlatform.Domain.Entities.Guest", b =>
-                {
-                    b.Navigation("Bookings");
                 });
 
             modelBuilder.Entity("HotelBookingPlatform.Domain.Entities.Hotel", b =>

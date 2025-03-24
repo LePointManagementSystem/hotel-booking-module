@@ -1,4 +1,6 @@
-﻿namespace HotelBookingPlatform.Domain.Helpers
+﻿using System.ComponentModel.DataAnnotations;
+
+namespace HotelBookingPlatform.Domain.Helpers
 {
     public class RegisterModel
     {
