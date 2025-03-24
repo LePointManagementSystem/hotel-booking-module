@@ -15,10 +15,10 @@ public class UserService : IUserService
     }
     public async Task<AuthModel> RegisterAsync(RegisterModel model)
     {
-        var validRoles = new List<string> { "Admin", "User" };
+        var validRoles = new List<string> { "Admin", "User", "Staff" };
         if (!validRoles.Contains(model.Role))
         {
-            throw new BadRequestException("Invalid role. Allowed roles are 'Admin' or 'User'.");
+            throw new BadRequestException("Invalid role. Allowed roles are 'Admin' or 'User' or 'Staff'.");
         }
 
         if (await _userManager.FindByEmailAsync(model.Email) is not null)
@@ -29,7 +29,7 @@ public class UserService : IUserService
             UserName = model.Email.Split('@')[0],
             Email = model.Email,
             FirstName = model.FirstName,
-            LastName = model.LastName
+            LastName = model.LastName,
         };
 
         var result = await _userManager.CreateAsync(user, model.Password);

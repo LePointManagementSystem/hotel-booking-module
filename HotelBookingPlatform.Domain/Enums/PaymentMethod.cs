@@ -6,6 +6,7 @@
         MasterCard,
         PayPal,
         BankTransfer,
-        CashOnDelivery
+        CashOnDelivery,
+        Cash
     }
 }
