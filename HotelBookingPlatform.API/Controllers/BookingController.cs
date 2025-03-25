@@ -31,7 +31,7 @@ public class BookingController : ControllerBase
     }
 
     [HttpGet("{id}")]
-    [Authorize(Roles = "Admin")]
+    [Authorize(Roles = "Admin, Staff")]
     [SwaggerOperation(Summary = "Retrieve a booking by its unique identifier.")]
     public async Task<IActionResult> GetBooking(int id)
     {
@@ -60,12 +60,17 @@ public class BookingController : ControllerBase
     }
 
     [HttpPut("{id}/Update_status")]
-    [Authorize(Roles = "User")]
+    [Authorize(Roles = "User,Admin,Staff")]
     [SwaggerOperation(Summary = "Update the status of a booking.")]
     public async Task<IActionResult> UpdateBookingStatus(int id, [FromBody] BookingStatus newStatus)
     {
         var userEmail = User.FindFirst(ClaimTypes.Email)?.Value;
-        if (userEmail is null)
+        var userName = User.Identity?.Name;
+        var role = User.FindFirst(ClaimTypes.Role)?.Value;
+        // if (userEmail is null)
+        //     return Unauthorized("User email not found in token.");
+
+        if (string.IsNullOrEmpty(userEmail))
             return Unauthorized("User email not found in token.");
 
         var booking = await _bookingService.GetBookingAsync(id);
@@ -76,17 +81,25 @@ public class BookingController : ControllerBase
             return NotFound($"Booking with ID {id} not found.");
         }
 
-        if (booking.UserName != userEmail.Split('@')[0])
-            return Unauthorized("You are not authorized to update this booking.");
+        // if (booking.UserName != userEmail.Split('@')[0])
+        //     return Unauthorized("You are not authorized to update this booking.");
 
-        if (newStatus == BookingStatus.Completed)
+        if (newStatus != BookingStatus.Completed &&
+            newStatus != BookingStatus.Confirmed &&
+            newStatus != BookingStatus.Cancelled)
         {
-            await _bookingService.UpdateBookingStatusAsync(id, newStatus);
-            return _responseHandler.Success("Booking status updated to Completed successfully.");
+            // await _bookingService.UpdateBookingStatusAsync(id, newStatus);
+            // return _responseHandler.Success("Booking status updated to Completed successfully.");
+             _log.Log($"UpdateBookingStatus: Invalid status '{newStatus}'Attempted by {userEmail}.", "Warning");
+             return BadRequest("Invalid status update request.");
         }
 
-        _log.Log($"UpdateBookingStatus: Invalid status update request for booking ID {id}.", "Warning");
-        return BadRequest("Invalid status update request.");
+        await _bookingService.UpdateBookingStatusAsync(id, newStatus);
+        _log.Log($"UpdateBookingStatus: Booking {id} status updated to '{newStatus}' by {userName} ({role}).", "info");
+
+        return _responseHandler.Success($"Booking status updated to {newStatus} successfully");
+
+       
     }
 }
 
