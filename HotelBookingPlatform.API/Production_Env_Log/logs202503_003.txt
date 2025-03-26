@@ -25982,3 +25982,83 @@ ORDER BY a0."Id", r."LocalUserId"
 2025-03-25 08:58:14.978 -04:00 [DBG] Connection id "0HNBBJHT9VH1L" sending FIN because: "The Socket transport's send loop completed gracefully."
 2025-03-25 08:58:14.982 -04:00 [DBG] Connection id "0HNBBJHT9VH1L" disconnecting.
 2025-03-25 08:58:14.986 -04:00 [DBG] Connection id "0HNBBJHT9VH1L" stopped.
+2025-03-25 11:58:37.546 -04:00 [DBG] Registered model binder providers, in the following order: ["Microsoft.AspNetCore.Mvc.ModelBinding.Binders.BinderTypeModelBinderProvider","Microsoft.AspNetCore.Mvc.ModelBinding.Binders.ServicesModelBinderProvider","Microsoft.AspNetCore.Mvc.ModelBinding.Binders.BodyModelBinderProvider","Microsoft.AspNetCore.Mvc.ModelBinding.Binders.HeaderModelBinderProvider","Microsoft.AspNetCore.Mvc.ModelBinding.Binders.FloatingPointTypeModelBinderProvider","Microsoft.AspNetCore.Mvc.ModelBinding.Binders.EnumTypeModelBinderProvider","Microsoft.AspNetCore.Mvc.ModelBinding.Binders.DateTimeModelBinderProvider","Microsoft.AspNetCore.Mvc.ModelBinding.Binders.SimpleTypeModelBinderProvider","Microsoft.AspNetCore.Mvc.ModelBinding.Binders.TryParseModelBinderProvider","Microsoft.AspNetCore.Mvc.ModelBinding.Binders.CancellationTokenModelBinderProvider","Microsoft.AspNetCore.Mvc.ModelBinding.Binders.ByteArrayModelBinderProvider","Microsoft.AspNetCore.Mvc.ModelBinding.Binders.FormFileModelBinderProvider","Microsoft.AspNetCore.Mvc.ModelBinding.Binders.FormCollectionModelBinderProvider","Microsoft.AspNetCore.Mvc.ModelBinding.Binders.KeyValuePairModelBinderProvider","Microsoft.AspNetCore.Mvc.ModelBinding.Binders.DictionaryModelBinderProvider","Microsoft.AspNetCore.Mvc.ModelBinding.Binders.ArrayModelBinderProvider","Microsoft.AspNetCore.Mvc.ModelBinding.Binders.CollectionModelBinderProvider","Microsoft.AspNetCore.Mvc.ModelBinding.Binders.ComplexObjectModelBinderProvider"]
+2025-03-25 11:58:37.841 -04:00 [DBG] Hosting starting
+2025-03-25 11:58:37.883 -04:00 [INF] User profile is available. Using 'C:\Users\plais\AppData\Local\ASP.NET\DataProtection-Keys' as key repository and Windows DPAPI to encrypt keys at rest.
+2025-03-25 11:58:37.901 -04:00 [DBG] Reading data from file 'C:\Users\plais\AppData\Local\ASP.NET\DataProtection-Keys\key-e823be8a-c8ba-474a-8dae-32f6009b36bd.xml'.
+2025-03-25 11:58:37.972 -04:00 [DBG] Found key {e823be8a-c8ba-474a-8dae-32f6009b36bd}.
+2025-03-25 11:58:37.986 -04:00 [DBG] Considering key {e823be8a-c8ba-474a-8dae-32f6009b36bd} with expiration date 2025-04-04 23:12:29Z as default key.
+2025-03-25 11:58:37.993 -04:00 [DBG] Forwarded activator type request from Microsoft.AspNetCore.DataProtection.XmlEncryption.DpapiXmlDecryptor, Microsoft.AspNetCore.DataProtection, Version=8.0.0.0, Culture=neutral, PublicKeyToken=adb9793829ddae60 to Microsoft.AspNetCore.DataProtection.XmlEncryption.DpapiXmlDecryptor, Microsoft.AspNetCore.DataProtection, Culture=neutral, PublicKeyToken=adb9793829ddae60
+2025-03-25 11:58:37.998 -04:00 [DBG] Decrypting secret element using Windows DPAPI.
+2025-03-25 11:58:38.003 -04:00 [DBG] Forwarded activator type request from Microsoft.AspNetCore.DataProtection.AuthenticatedEncryption.ConfigurationModel.AuthenticatedEncryptorDescriptorDeserializer, Microsoft.AspNetCore.DataProtection, Version=8.0.0.0, Culture=neutral, PublicKeyToken=adb9793829ddae60 to Microsoft.AspNetCore.DataProtection.AuthenticatedEncryption.ConfigurationModel.AuthenticatedEncryptorDescriptorDeserializer, Microsoft.AspNetCore.DataProtection, Culture=neutral, PublicKeyToken=adb9793829ddae60
+2025-03-25 11:58:38.018 -04:00 [DBG] Opening CNG algorithm 'AES' from provider 'null' with chaining mode CBC.
+2025-03-25 11:58:38.023 -04:00 [DBG] Opening CNG algorithm 'SHA256' from provider 'null' with HMAC.
+2025-03-25 11:58:38.032 -04:00 [DBG] Using key {e823be8a-c8ba-474a-8dae-32f6009b36bd} as the default key.
+2025-03-25 11:58:38.038 -04:00 [DBG] Key ring with default key {e823be8a-c8ba-474a-8dae-32f6009b36bd} was loaded during application startup.
+2025-03-25 11:58:38.176 -04:00 [INF] Now listening on: http://localhost:5004
+2025-03-25 11:58:38.178 -04:00 [DBG] Loaded hosting startup assembly HotelBookingPlatform.API
+2025-03-25 11:58:38.179 -04:00 [INF] Application started. Press Ctrl+C to shut down.
+2025-03-25 11:58:38.181 -04:00 [INF] Hosting environment: Development
+2025-03-25 11:58:38.182 -04:00 [INF] Content root path: C:\Users\plais\Downloads\hotel-booking-module\HotelBookingPlatform.API
+2025-03-25 11:58:38.184 -04:00 [DBG] Hosting started
+2025-03-25 11:58:50.940 -04:00 [DBG] Connection id "0HNBBMNNPEA3D" accepted.
+2025-03-25 11:58:50.946 -04:00 [DBG] Connection id "0HNBBMNNPEA3D" started.
+2025-03-25 11:58:51.018 -04:00 [DBG] Connection id "0HNBBMNNPEA3E" accepted.
+2025-03-25 11:58:51.027 -04:00 [DBG] Connection id "0HNBBMNNPEA3E" started.
+2025-03-25 11:58:51.808 -04:00 [INF] Request starting HTTP/1.1 GET http://localhost:5004/swagger/v1/swagger.json - null null
+2025-03-25 11:58:51.821 -04:00 [DBG] Wildcard detected, all requests with hosts will be allowed.
+2025-03-25 11:58:51.920 -04:00 [DBG] No candidates found for the request path '/swagger/v1/swagger.json'
+2025-03-25 11:58:51.922 -04:00 [DBG] Request did not match any endpoints
+2025-03-25 11:58:52.488 -04:00 [DBG] Connection id "0HNBBMNNPEA3D" completed keep alive response.
+2025-03-25 11:58:52.501 -04:00 [INF] Request finished HTTP/1.1 GET http://localhost:5004/swagger/v1/swagger.json - 200 null application/json;charset=utf-8 689.5438ms
+2025-03-25 11:59:20.967 -04:00 [DBG] Connection id "0HNBBMNNPEA3E" received FIN.
+2025-03-25 11:59:21.010 -04:00 [DBG] Connection id "0HNBBMNNPEA3D" received FIN.
+2025-03-25 11:59:21.607 -04:00 [DBG] Connection id "0HNBBMNNPEA3D" disconnecting.
+2025-03-25 11:59:21.613 -04:00 [DBG] Connection id "0HNBBMNNPEA3D" stopped.
+2025-03-25 11:59:21.621 -04:00 [DBG] Connection id "0HNBBMNNPEA3D" sending FIN because: "The Socket transport's send loop completed gracefully."
+2025-03-25 11:59:21.621 -04:00 [DBG] Connection id "0HNBBMNNPEA3E" sending FIN because: "The Socket transport's send loop completed gracefully."
+2025-03-25 11:59:21.627 -04:00 [DBG] Connection id "0HNBBMNNPEA3E" disconnecting.
+2025-03-25 11:59:21.629 -04:00 [DBG] Connection id "0HNBBMNNPEA3E" stopped.
+2025-03-26 11:35:18.957 -04:00 [DBG] Registered model binder providers, in the following order: ["Microsoft.AspNetCore.Mvc.ModelBinding.Binders.BinderTypeModelBinderProvider","Microsoft.AspNetCore.Mvc.ModelBinding.Binders.ServicesModelBinderProvider","Microsoft.AspNetCore.Mvc.ModelBinding.Binders.BodyModelBinderProvider","Microsoft.AspNetCore.Mvc.ModelBinding.Binders.HeaderModelBinderProvider","Microsoft.AspNetCore.Mvc.ModelBinding.Binders.FloatingPointTypeModelBinderProvider","Microsoft.AspNetCore.Mvc.ModelBinding.Binders.EnumTypeModelBinderProvider","Microsoft.AspNetCore.Mvc.ModelBinding.Binders.DateTimeModelBinderProvider","Microsoft.AspNetCore.Mvc.ModelBinding.Binders.SimpleTypeModelBinderProvider","Microsoft.AspNetCore.Mvc.ModelBinding.Binders.TryParseModelBinderProvider","Microsoft.AspNetCore.Mvc.ModelBinding.Binders.CancellationTokenModelBinderProvider","Microsoft.AspNetCore.Mvc.ModelBinding.Binders.ByteArrayModelBinderProvider","Microsoft.AspNetCore.Mvc.ModelBinding.Binders.FormFileModelBinderProvider","Microsoft.AspNetCore.Mvc.ModelBinding.Binders.FormCollectionModelBinderProvider","Microsoft.AspNetCore.Mvc.ModelBinding.Binders.KeyValuePairModelBinderProvider","Microsoft.AspNetCore.Mvc.ModelBinding.Binders.DictionaryModelBinderProvider","Microsoft.AspNetCore.Mvc.ModelBinding.Binders.ArrayModelBinderProvider","Microsoft.AspNetCore.Mvc.ModelBinding.Binders.CollectionModelBinderProvider","Microsoft.AspNetCore.Mvc.ModelBinding.Binders.ComplexObjectModelBinderProvider"]
+2025-03-26 11:35:19.295 -04:00 [DBG] Hosting starting
+2025-03-26 11:35:19.353 -04:00 [INF] User profile is available. Using 'C:\Users\plais\AppData\Local\ASP.NET\DataProtection-Keys' as key repository and Windows DPAPI to encrypt keys at rest.
+2025-03-26 11:35:19.379 -04:00 [DBG] Reading data from file 'C:\Users\plais\AppData\Local\ASP.NET\DataProtection-Keys\key-e823be8a-c8ba-474a-8dae-32f6009b36bd.xml'.
+2025-03-26 11:35:19.452 -04:00 [DBG] Found key {e823be8a-c8ba-474a-8dae-32f6009b36bd}.
+2025-03-26 11:35:19.469 -04:00 [DBG] Considering key {e823be8a-c8ba-474a-8dae-32f6009b36bd} with expiration date 2025-04-04 23:12:29Z as default key.
+2025-03-26 11:35:19.480 -04:00 [DBG] Forwarded activator type request from Microsoft.AspNetCore.DataProtection.XmlEncryption.DpapiXmlDecryptor, Microsoft.AspNetCore.DataProtection, Version=8.0.0.0, Culture=neutral, PublicKeyToken=adb9793829ddae60 to Microsoft.AspNetCore.DataProtection.XmlEncryption.DpapiXmlDecryptor, Microsoft.AspNetCore.DataProtection, Culture=neutral, PublicKeyToken=adb9793829ddae60
+2025-03-26 11:35:19.487 -04:00 [DBG] Decrypting secret element using Windows DPAPI.
+2025-03-26 11:35:19.492 -04:00 [DBG] Forwarded activator type request from Microsoft.AspNetCore.DataProtection.AuthenticatedEncryption.ConfigurationModel.AuthenticatedEncryptorDescriptorDeserializer, Microsoft.AspNetCore.DataProtection, Version=8.0.0.0, Culture=neutral, PublicKeyToken=adb9793829ddae60 to Microsoft.AspNetCore.DataProtection.AuthenticatedEncryption.ConfigurationModel.AuthenticatedEncryptorDescriptorDeserializer, Microsoft.AspNetCore.DataProtection, Culture=neutral, PublicKeyToken=adb9793829ddae60
+2025-03-26 11:35:19.514 -04:00 [DBG] Opening CNG algorithm 'AES' from provider 'null' with chaining mode CBC.
+2025-03-26 11:35:19.521 -04:00 [DBG] Opening CNG algorithm 'SHA256' from provider 'null' with HMAC.
+2025-03-26 11:35:19.531 -04:00 [DBG] Using key {e823be8a-c8ba-474a-8dae-32f6009b36bd} as the default key.
+2025-03-26 11:35:19.535 -04:00 [DBG] Key ring with default key {e823be8a-c8ba-474a-8dae-32f6009b36bd} was loaded during application startup.
+2025-03-26 11:35:19.674 -04:00 [INF] Now listening on: http://localhost:5004
+2025-03-26 11:35:19.676 -04:00 [DBG] Loaded hosting startup assembly HotelBookingPlatform.API
+2025-03-26 11:35:19.678 -04:00 [INF] Application started. Press Ctrl+C to shut down.
+2025-03-26 11:35:19.679 -04:00 [INF] Hosting environment: Development
+2025-03-26 11:35:19.681 -04:00 [INF] Content root path: C:\Users\plais\Downloads\hotel-booking-module\HotelBookingPlatform.API
+2025-03-26 11:35:19.683 -04:00 [DBG] Hosting started
+2025-03-26 11:35:27.089 -04:00 [DBG] Connection id "0HNBCFFAJSBVA" accepted.
+2025-03-26 11:35:27.092 -04:00 [DBG] Connection id "0HNBCFFAJSBVA" started.
+2025-03-26 11:35:27.594 -04:00 [DBG] Connection id "0HNBCFFAJSBVB" accepted.
+2025-03-26 11:35:27.598 -04:00 [DBG] Connection id "0HNBCFFAJSBVB" started.
+2025-03-26 11:35:27.798 -04:00 [DBG] Connection id "0HNBCFFAJSBVB" received FIN.
+2025-03-26 11:35:27.798 -04:00 [DBG] Connection id "0HNBCFFAJSBVA" received FIN.
+2025-03-26 11:35:27.905 -04:00 [DBG] Connection id "0HNBCFFAJSBVB" disconnecting.
+2025-03-26 11:35:28.288 -04:00 [DBG] Connection id "0HNBCFFAJSBVC" accepted.
+2025-03-26 11:35:28.534 -04:00 [DBG] Connection id "0HNBCFFAJSBVB" sending FIN because: "The Socket transport's send loop completed gracefully."
+2025-03-26 11:35:28.536 -04:00 [DBG] Connection id "0HNBCFFAJSBVA" disconnecting.
+2025-03-26 11:35:28.546 -04:00 [DBG] Connection id "0HNBCFFAJSBVA" sending FIN because: "The Socket transport's send loop completed gracefully."
+2025-03-26 11:35:28.549 -04:00 [DBG] Connection id "0HNBCFFAJSBVC" started.
+2025-03-26 11:35:28.561 -04:00 [DBG] Connection id "0HNBCFFAJSBVB" stopped.
+2025-03-26 11:35:28.576 -04:00 [DBG] Connection id "0HNBCFFAJSBVA" stopped.
+2025-03-26 11:35:28.792 -04:00 [INF] Request starting HTTP/1.1 GET http://localhost:5004/swagger/v1/swagger.json - null null
+2025-03-26 11:35:28.803 -04:00 [DBG] Wildcard detected, all requests with hosts will be allowed.
+2025-03-26 11:35:28.928 -04:00 [DBG] No candidates found for the request path '/swagger/v1/swagger.json'
+2025-03-26 11:35:28.931 -04:00 [DBG] Request did not match any endpoints
+2025-03-26 11:35:29.797 -04:00 [DBG] Connection id "0HNBCFFAJSBVC" completed keep alive response.
+2025-03-26 11:35:29.802 -04:00 [INF] Request finished HTTP/1.1 GET http://localhost:5004/swagger/v1/swagger.json - 200 null application/json;charset=utf-8 1041.5309ms
+2025-03-26 11:35:37.598 -04:00 [DBG] Connection id "0HNBCFFAJSBVC" received FIN.
+2025-03-26 11:35:37.719 -04:00 [DBG] Connection id "0HNBCFFAJSBVC" disconnecting.
+2025-03-26 11:35:37.729 -04:00 [DBG] Connection id "0HNBCFFAJSBVC" sending FIN because: "The Socket transport's send loop completed gracefully."
+2025-03-26 11:35:37.733 -04:00 [DBG] Connection id "0HNBCFFAJSBVC" stopped.
