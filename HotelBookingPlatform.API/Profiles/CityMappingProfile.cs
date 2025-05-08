@@ -13,6 +13,6 @@ public class CityMappingProfile : Profile
         CreateMap<City, CityResponseDto>();
         CreateMap<City, CityWithHotelsResponseDto>()
             .ForMember(dest => dest.Hotels, opt => opt.MapFrom(src => src.Hotels));
-        CreateMap<Hotel, HotelBasicResponseDto>();
+        CreateMap<Hotel, HotelResponseDto>();
     }
 }

@@ -15,7 +15,14 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 builder.Services.AddAutoMapper(typeof(CityMappingProfile));
 
-
+builder.Services.AddCors(options => {
+    options.AddPolicy("AllowFrontend", policy => {
+        policy.WithOrigins("http://localhost:5173")
+            .AllowAnyHeader()
+            .AllowAnyMethod()
+            .AllowCredentials();      
+    });
+});
 
 // Add custom dependencies
 builder.Services.AddApplicationDependencies()
@@ -33,7 +40,7 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
-app.UseCors();
+app.UseCors("AllowFrontend");
 app.UseMiddleware<GlobalExceptionHandling>();
 app.UseHttpsRedirection();
 app.UseAuthentication();

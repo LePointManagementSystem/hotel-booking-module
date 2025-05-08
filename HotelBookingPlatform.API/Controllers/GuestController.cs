@@ -6,6 +6,7 @@ using Microsoft.EntityFrameworkCore;
 using System;
 using System.Threading.Tasks;
 using System.Collections.Generic;
+using HotelBookingPlatform.Domain.DTOs.Guest;
 
 namespace HotelBookingPlatform.API.Controllers
 {
@@ -23,61 +24,92 @@ namespace HotelBookingPlatform.API.Controllers
 
         // GET: api/Guest
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<Guest>>> GetGuests()
+        public async Task<ActionResult<IEnumerable<GuestResponse>>> GetGuests()
         {
-            return await _dbContext.Guests.ToListAsync();
+            //return await _dbContext.Guests.ToListAsync();
+            var guests = await _dbContext.Guests
+                .Select(g => new GuestResponse {
+                    Id = g.Id,
+                    FirstName = g.FirstName,
+                    LastName = g.LastName,
+                    CIN = g.CIN,
+                    Email = g.Email
+                })
+                .ToListAsync();
+
+                return Ok(guests);
         }
 
         // GET: api/Guest/{id}
         [HttpGet("{id}")]
-        public async Task<ActionResult<Guest>> GetGuest(Guid id)
+        public async Task<ActionResult<GuestResponse>> GetGuest(Guid id)
         {
             var guest = await _dbContext.Guests.FindAsync(id);
             if (guest == null)
                 return NotFound();
 
-            return guest;
+            var response = new GuestResponse {
+                Id = guest.Id,
+                FirstName = guest.FirstName,
+                LastName = guest.LastName,
+                CIN = guest.CIN,
+                Email = guest.Email
+            };
+
+            return Ok(response);
         }
 
         // POST: api/Guest
         [HttpPost]
-        public async Task<ActionResult<Guest>> CreateGuest(Guest guest)
+        public async Task<ActionResult<GuestResponse>> CreateGuest([FromBody] GuestRequest request)
         {
-            var existingGuest = await _dbContext.Guests.FirstOrDefaultAsync(g => g.CIN == guest.CIN);
+            var existingGuest = await _dbContext.Guests.FirstOrDefaultAsync(g => g.CIN == request.CIN);
             if (existingGuest != null)
                 return Conflict("A guest with this CIN already exists.");
 
-            guest.Id = Guid.NewGuid();
+            var guest = new Guest {
+                Id = Guid.NewGuid(),
+                FirstName = request.FirstName,
+                LastName = request.LastName,
+                CIN = request.CIN,
+                Email = request.Email
+            };
+
             _dbContext.Guests.Add(guest);
             await _dbContext.SaveChangesAsync();
 
-            return CreatedAtAction(nameof(GetGuest), new { id = guest.Id }, guest);
+            var response = new GuestResponse {
+
+                Id = guest.Id,
+                FirstName = guest.FirstName,
+                LastName = guest.LastName,
+                CIN = guest.CIN,
+                Email = guest.Email
+            };
+            return CreatedAtAction(nameof(GetGuest), new { id = guest.Id}, response);
         }
 
         // PUT: api/Guest/{id}
         [HttpPut("{id}")]
-        public async Task<IActionResult> UpdateGuest(Guid id, Guest updatedGuest)
+        public async Task<IActionResult> UpdateGuest(Guid id, [FromBody] GuestRequest request)
         {
-            if (id != updatedGuest.Id)
-                return BadRequest();
-
             var guest = await _dbContext.Guests.FindAsync(id);
             if (guest == null)
                 return NotFound();
 
-            guest.FirstName = updatedGuest.FirstName;
-            guest.LastName = updatedGuest.LastName;
-            guest.Email = updatedGuest.Email;
-            guest.CIN = updatedGuest.CIN;
-
+                guest.FirstName = request.FirstName;
+                guest.LastName = request.LastName;
+                guest.CIN = request.CIN;
+                guest.Email = request.Email;
+                
             await _dbContext.SaveChangesAsync();
             return NoContent();
         }
 
         // GET: api/Guest/{id}/bookings
         [HttpGet("{id}/bookings")]
-        public async Task<ActionResult<IEnumerable<Booking>>> GetGuestBookings(Guid id)
-        {
+        public async Task<ActionResult<IEnumerable<object>>> GetGuestBookings(Guid id) {
+
             var guest = await _dbContext.Guests
                 .Include(g => g.Bookings)
                 .ThenInclude(b => b.Rooms)
@@ -86,7 +118,18 @@ namespace HotelBookingPlatform.API.Controllers
             if (guest == null)
                 return NotFound();
 
-            return Ok(guest.Bookings);
+            var bookings = guest.Bookings.Select(b => new {
+                b.BookingID,
+                b.Status,
+                b.ConfirmationNumber,
+                b.TotalPrice,
+                b.BookingDateUtc,
+                b.CheckInDateUtc,
+                b.CheckOutDateUtc
+
+            });
+            
+            return Ok(bookings);
         }
     }
 }
