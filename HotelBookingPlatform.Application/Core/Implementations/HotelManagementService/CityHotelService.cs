@@ -84,7 +84,7 @@ public class CityHotelService : ICityHotelService
         _logger.Log($"Removed hotel with ID {hotelId} from city with ID {cityId}.", "info");
     }
 
-    public async Task<IEnumerable<HotelBasicResponseDto>> GetHotelsForCityAsync(int cityId)
+    public async Task<IEnumerable<HotelResponseDto>> GetHotelsForCityAsync(int cityId)
     {
         var hotels = await _hotelUnitOfWork.HotelRepository.GetHotelsForCityAsync(cityId);
 
@@ -92,7 +92,7 @@ public class CityHotelService : ICityHotelService
             throw new InvalidOperationException($"No hotels found for city with ID {cityId}.");
 
         _logger.Log($"Retrieved {hotels.Count()} hotels for city with ID {cityId}.", "info");
-        return _mapper.Map<IEnumerable<HotelBasicResponseDto>>(hotels);
+        return _mapper.Map<IEnumerable<HotelResponseDto>>(hotels);
     }
 }
 

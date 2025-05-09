@@ -90,6 +90,16 @@ public class CityService : BaseService<City>, ICityService
         return _mapper.Map<IEnumerable<CityResponseDto>>(cities);
     }
 
+    public async Task<IEnumerable<HotelResponseDto>> GetHotelsForCityAsync(int cityId) {
+
+        var city = await _unitOfWork.CityRepository.GetCityByIdAsync(cityId, includeHotels: true);
+        
+        if (city == null || city.Hotels == null || !city.Hotels.Any())
+        throw new NotFoundException($"No hotels found for city with ID {cityId}.");
+
+        return _mapper.Map<IEnumerable<HotelResponseDto>>(city.Hotels);
+    }
+
 }
 
 
