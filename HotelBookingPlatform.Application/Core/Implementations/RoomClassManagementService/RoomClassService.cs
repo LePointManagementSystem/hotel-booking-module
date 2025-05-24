@@ -10,6 +10,13 @@ public class RoomClassService : IRoomClassService
         _unitOfWork = unitOfWork;
         _mapper = mapper;
     }
+
+    public async Task<IEnumerable<RoomClassResponseDto>> GetAllRoomClassesAsync()
+    {
+        var roomClasses = await _unitOfWork.RoomClasseRepository.GetAllAsync();
+        return _mapper.Map<IEnumerable<RoomClassResponseDto>>(roomClasses);
+    }
+
     public async Task<IEnumerable<RoomClassResponseDto>> GetRoomClassesByHotelId(int hotelId)
     {
         var hotel = await _unitOfWork.HotelRepository.GetByIdAsync(hotelId);

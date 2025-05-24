@@ -4,6 +4,7 @@ namespace HotelBookingPlatform.API.Controllers;
 [ApiController]
 public class RoomClassController : ControllerBase
 {
+    private readonly ILogger<RoomClassController> _logger;
     private readonly IRoomClassService _roomClassService;
     private readonly IRoomManagementService _roomManagementService;
     private readonly IAmenityManagementService _amenityManagementService;
@@ -14,13 +15,15 @@ public class RoomClassController : ControllerBase
         IRoomManagementService roomManagementService,
         IAmenityManagementService amenityManagementService,
         IImageService imageService,
-        IResponseHandler responseHandler)
+        IResponseHandler responseHandler,
+        ILogger<RoomClassController> logger)
     {
         _roomClassService = roomClassService;
         _roomManagementService = roomManagementService;
         _amenityManagementService = amenityManagementService;
         _imageService = imageService;
         _responseHandler = responseHandler;
+        _logger = logger;
     }
 
     [HttpPost]
@@ -32,6 +35,22 @@ public class RoomClassController : ControllerBase
 
         var createdRoomClass = await _roomClassService.CreateRoomClass(request);
         return _responseHandler.Created(createdRoomClass, "Room class created successfully.");
+    }
+
+    [HttpGet]
+    [SwaggerOperation(Summary = "Get all room classes", Description = "Retrieve all room class types")]
+    public async Task<IActionResult> GetAllRoomClasses()
+    {
+        try
+        {
+            var roomClasses = await _roomClassService.GetAllRoomClassesAsync();
+            return _responseHandler.Success(roomClasses);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError($"Error retrieving room classes: {ex.Message}", "error");
+            return _responseHandler.NotFound("An error occured while retrieving room classes.");
+        }
     }
 
     [HttpGet("{id}")]
