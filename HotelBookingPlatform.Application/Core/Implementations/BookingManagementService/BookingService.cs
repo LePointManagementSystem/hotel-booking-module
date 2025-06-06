@@ -33,11 +33,25 @@ public class BookingService : BaseService<Booking>, IBookingService
         if (user is null)
             throw new NotFoundException("User not found.");
 
-        if (request.CheckInDateUtc >= request.CheckOutDateUtc)
-            throw new BadRequestException("Check-out date must be greater than check-in date.");
+        var checkOut = request.DurationType switch
+        {
+            BookingDurationType.Hours2 => request.CheckInDateUtc.AddHours(2),
+            BookingDurationType.Hours4 => request.CheckInDateUtc.AddHours(4),
+            BookingDurationType.Overnight => request.CheckInDateUtc.AddHours(24),
+            _ => throw new ArgumentOutOfRangeException()
+        };
 
-        var totalPrice = await _priceCalculationService.CalculateTotalPriceAsync(request.RoomIds.ToList(), request.CheckInDateUtc, request.CheckOutDateUtc);
-        var discountedTotalPrice = await _priceCalculationService.CalculateDiscountedPriceAsync(request.RoomIds.ToList(), request.CheckInDateUtc, request.CheckOutDateUtc);
+        var totalPrice = await _priceCalculationService.CalculateTotalPriceAsync(
+            request.RoomIds.ToList(),
+            request.CheckInDateUtc,
+            checkOut
+        );
+
+        var discountedTotalPrice = await _priceCalculationService.CalculateDiscountedPriceAsync(
+            request.RoomIds.ToList(),
+            request.CheckInDateUtc,
+            checkOut
+        );
 
         var booking = new Booking
         {
@@ -50,7 +64,8 @@ public class BookingService : BaseService<Booking>, IBookingService
             PaymentMethod = request.PaymentMethod,
             Hotel = await _unitOfWork.HotelRepository.GetByIdAsync(request.HotelId),
             CheckInDateUtc = request.CheckInDateUtc,
-            CheckOutDateUtc = request.CheckOutDateUtc,
+            CheckOutDateUtc = checkOut,
+            DurationType = request.DurationType,
             Status = BookingStatus.Pending,
             Rooms = new List<Room>()
         };
@@ -65,7 +80,9 @@ public class BookingService : BaseService<Booking>, IBookingService
         await _unitOfWork.BookingRepository.CreateAsync(booking);
         await _unitOfWork.SaveChangesAsync();
 
-        return _mapper.Map<BookingDto>(booking);
+        var result = _mapper.Map<BookingDto>(booking);
+        result.DurationType = request.DurationType.ToString();
+        return result;
     }
     public async Task UpdateBookingStatusAsync(int bookingId, BookingStatus newStatus)
     {

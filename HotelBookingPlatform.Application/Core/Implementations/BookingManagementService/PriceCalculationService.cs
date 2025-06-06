@@ -11,16 +11,14 @@ public class PriceCalculationService : IPriceCalculationService
     public async Task<decimal> CalculateTotalPriceAsync(List<int> roomIds, DateTime checkInDate, DateTime checkOutDate)
     {
         decimal totalPrice = 0m;
-        int numberOfNights = (checkOutDate - checkInDate).Days;
+        var duration = GetBookingDuration(checkInDate, checkOutDate);
 
         foreach (var roomId in roomIds)
         {
             var room = await _unitOfWork.RoomRepository.GetByIdAsync(roomId);
-
             if (room is not null)
             {
-                decimal roomPrice = room.PricePerNight * numberOfNights;
-                totalPrice += roomPrice;
+                totalPrice += RoomPricing.GetPrice(room.RoomClass.RoomType, duration);
             }
         }
 
@@ -29,27 +27,36 @@ public class PriceCalculationService : IPriceCalculationService
 
     public async Task<decimal> CalculateDiscountedPriceAsync(List<int> roomIds, DateTime checkInDate, DateTime checkOutDate)
     {
-        decimal discountedTotalPrice = 0;
-        var numberOfNights = (checkOutDate - checkInDate).Days;
+        decimal discountedTotalPrice = 0m;
+        var duration = GetBookingDuration(checkInDate, checkOutDate);
 
         foreach (var roomId in roomIds)
         {
             var room = await _unitOfWork.RoomRepository.GetByIdAsync(roomId);
             if (room is not null)
             {
-                var activeDiscount = await _unitOfWork.DiscountRepository.GetActiveDiscountForRoomAsync(roomId, checkInDate, checkOutDate);
-                if (activeDiscount is not null && activeDiscount.IsActive)
+                decimal basePrice = RoomPricing.GetPrice(room.RoomClass.RoomType, duration);
+                var discount = await _unitOfWork.DiscountRepository.GetActiveDiscountForRoomAsync(roomId, checkInDate, checkOutDate);
+                if (discount != null && discount.IsActive)
                 {
-                    var discountPrice = room.PricePerNight * (1 - (activeDiscount.Percentage / 100.0m));
-                    discountedTotalPrice += discountPrice * numberOfNights;
+                    basePrice *= (1 - (discount.Percentage / 100.0m));
                 }
-                else
-                {
-                    discountedTotalPrice += room.PricePerNight * numberOfNights;
-                }
+                discountedTotalPrice += basePrice;
             }
         }
 
         return discountedTotalPrice;
     }
+
+    private BookingDurationType GetBookingDuration(DateTime checkInDate, DateTime checkOutDate)
+    {
+        var hours = (checkOutDate - checkInDate).TotalHours;
+        return hours switch
+        {
+            <= 2 => BookingDurationType.Hours2,
+            <= 4 => BookingDurationType.Hours4,
+            _ => BookingDurationType.Overnight
+        };
+    }
 }
+
