@@ -14,5 +14,6 @@
         public DateTime CheckOutDateUtc { get; set; }
         public string Status { get; set; }
         public List<string> Numbers { get; set; }
+        public string DurationType { get; set; }
     }
 }

@@ -8,7 +8,7 @@ namespace HotelBookingPlatform.Domain.Entities
         public string UserId { get; set; }
         public LocalUser User { get; set; }
         public string? CreatedById { get; set; }
-        public LocalUser ? CreatedBy { get; set; }
+        public LocalUser? CreatedBy { get; set; }
         public Guid? GuestId { get; set; }
         public Guest? Guest { get; set; }
         public BookingStatus Status { get; set; }
@@ -21,8 +21,9 @@ namespace HotelBookingPlatform.Domain.Entities
         public Hotel Hotel { get; set; }
         public DateTime CheckInDateUtc { get; set; }
         public DateTime CheckOutDateUtc { get; set; }
+        public BookingDurationType DurationType { get; set; } // NEW
         public ICollection<Room> Rooms { get; set; } = new List<Room>();
-        
         public ICollection<InvoiceRecord> Invoice { get; set; } = new List<InvoiceRecord>();
     }
+
 }

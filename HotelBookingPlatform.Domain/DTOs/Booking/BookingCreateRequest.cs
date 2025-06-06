@@ -14,6 +14,7 @@
         public DateTime CheckOutDateUtc { get; set; }
         public ICollection<int> RoomIds { get; set; }
         public PaymentMethod PaymentMethod { get; set; }
+        public BookingDurationType DurationType { get; set; }
 
         public GuestDto Guest { get; set; }
     }
