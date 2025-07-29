@@ -2,6 +2,8 @@
 {
     public interface IBookingRepository : IGenericRepository<Booking>
     {
+
+        Task<IEnumerable<Booking>> GetAllBookingsAsync();
         Task<Booking> GetByIdAsync(int id);
         Task UpdateBookingStatusAsync(int bookingId, BookingStatus newStatus);
         Task<Booking> GetBookingByUserAndHotelAsync(string userId, int hotelId);
