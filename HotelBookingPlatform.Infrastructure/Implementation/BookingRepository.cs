@@ -4,6 +4,17 @@
     {
         public BookingRepository(AppDbContext context)
             : base(context) { }
+
+        public async Task<IEnumerable<Booking>> GetAllBookingsAsync()
+        {
+            return await _appDbContext.Bookings
+            .Include(b => b.Hotel)
+            .Include(b => b.Rooms)
+            .Include(b => b.User)
+            .Include(b => b.Guest)
+            .AsSplitQuery()
+            .ToListAsync();
+        }
         public async Task UpdateBookingStatusAsync(int bookingId, BookingStatus newStatus)
         {
             var booking = await _appDbContext.Bookings.FindAsync(bookingId);

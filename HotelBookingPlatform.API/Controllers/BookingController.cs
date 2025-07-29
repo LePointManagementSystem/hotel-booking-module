@@ -17,6 +17,18 @@ public class BookingController : ControllerBase
         _log = log;
     }
 
+    [HttpGet("all")]
+    [SwaggerOperation(
+        Summary = "Retrieve all bookings",
+        Description = "Fetch all bookings from the system",
+        OperationId = "GetAllBookings",
+        Tags = new[] { "Booking"})]
+    public async Task<IActionResult> GetAllBookings()
+    {
+        var result = await _bookingService.GetAllBookingsAsync();
+        return Ok(result);
+    }
+
     [HttpPost("confirm")]
     [SwaggerOperation(Summary = "Send a confirmation email",Description = "This endpoint sends a confirmation email to the specified user. The email contains booking confirmation details.",
                       OperationId = "ConfirmBooking",Tags = new[] { "Booking" })]

@@ -14,6 +14,19 @@ public class BookingService : BaseService<Booking>, IBookingService
         _confirmationNumberGeneratorService = confirmationNumberGeneratorService;
         _priceCalculationService = priceCalculationService;
     }
+
+    public async Task<IEnumerable<BookingDto>> GetAllBookingsAsync()
+    {
+        var bookings = await _unitOfWork.BookingRepository.GetAllBookingsAsync();
+        var result = bookings.Select(b =>
+        {
+            var dto = _mapper.Map<BookingDto>(b);
+            dto.DurationType = b.DurationType.ToString();
+            dto.UserName = b.User?.UserName;
+            return dto;
+        });
+        return result;
+    }
     public async Task<BookingDto> GetBookingAsync(int id)
     {
         var booking = await _unitOfWork.BookingRepository.GetByIdAsync(id);
