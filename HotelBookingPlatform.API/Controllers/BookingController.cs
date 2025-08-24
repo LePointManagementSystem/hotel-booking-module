@@ -1,5 +1,7 @@
 ﻿using HotelBookingPlatform.Application.Core.Abstracts.IBookingManagementService;
+using Microsoft.AspNetCore.Http.HttpResults;
 namespace HotelBookingPlatform.API.Controllers;
+
 [Route("api/[controller]")]
 [ApiController]
 [ResponseCache(CacheProfileName = "DefaultCache")]
@@ -22,7 +24,7 @@ public class BookingController : ControllerBase
         Summary = "Retrieve all bookings",
         Description = "Fetch all bookings from the system",
         OperationId = "GetAllBookings",
-        Tags = new[] { "Booking"})]
+        Tags = new[] { "Booking" })]
     public async Task<IActionResult> GetAllBookings()
     {
         var result = await _bookingService.GetAllBookingsAsync();
@@ -30,8 +32,8 @@ public class BookingController : ControllerBase
     }
 
     [HttpPost("confirm")]
-    [SwaggerOperation(Summary = "Send a confirmation email",Description = "This endpoint sends a confirmation email to the specified user. The email contains booking confirmation details.",
-                      OperationId = "ConfirmBooking",Tags = new[] { "Booking" })]
+    [SwaggerOperation(Summary = "Send a confirmation email", Description = "This endpoint sends a confirmation email to the specified user. The email contains booking confirmation details.",
+                      OperationId = "ConfirmBooking", Tags = new[] { "Booking" })]
     public async Task<IActionResult> ConfirmBooking([FromBody] BookingConfirmation confirmation)
     {
         if (confirmation is null || string.IsNullOrEmpty(confirmation.UserEmail))
@@ -55,7 +57,7 @@ public class BookingController : ControllerBase
     [Route("create")]
     [SwaggerOperation(Summary = "Create a new booking", Description = "Creates a new booking record in the system. The request must include details of the booking such as check-in and check-out dates, room IDs, payment method, and hotel ID. The user making the request must be authenticated.",
      OperationId = "CreateBooking",
-     Tags = new[] { "Booking" } )]
+     Tags = new[] { "Booking" })]
     public async Task<IActionResult> CreateBooking([FromBody] BookingCreateRequest request)
     {
         var userEmail = User.FindFirst(ClaimTypes.Email)?.Value;
@@ -102,8 +104,8 @@ public class BookingController : ControllerBase
         {
             // await _bookingService.UpdateBookingStatusAsync(id, newStatus);
             // return _responseHandler.Success("Booking status updated to Completed successfully.");
-             _log.Log($"UpdateBookingStatus: Invalid status '{newStatus}'Attempted by {userEmail}.", "Warning");
-             return BadRequest("Invalid status update request.");
+            _log.Log($"UpdateBookingStatus: Invalid status '{newStatus}'Attempted by {userEmail}.", "Warning");
+            return BadRequest("Invalid status update request.");
         }
 
         await _bookingService.UpdateBookingStatusAsync(id, newStatus);
@@ -111,7 +113,20 @@ public class BookingController : ControllerBase
 
         return _responseHandler.Success($"Booking status updated to {newStatus} successfully");
 
-       
+
+    }
+
+    [HttpPut("release-expired")]
+    [Authorize(Roles = "Admin, Staff")]
+    [SwaggerOperation(Summary = " force release of expired bookings", Description = " Mark expired bookings as completed and free up the rooms.",
+    Tags = new[] { "Booking" })]
+    public async Task<IActionResult> ReleaseExpiredBookings()
+    {
+        var result = await _bookingService.ReleaseExpiredBookingsAsync();
+
+        if (result.Count == 0)
+            return Ok("No expired bookings found at this time.");
+        return Ok(result);
     }
 }
 
