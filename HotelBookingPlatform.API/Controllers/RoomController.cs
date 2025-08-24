@@ -1,4 +1,9 @@
-﻿namespace HotelBookingPlatform.API.Controllers;
+﻿using HotelBookingPlatform.Application.Core.Implementations.BookingManagementService;
+using HotelBookingPlatform.Application.Core.Abstracts;
+using HotelBookingPlatform.Application.Core.Abstracts.IBookingManagementService;
+
+namespace HotelBookingPlatform.API.Controllers;
+
 [Route("api/[controller]")]
 [ApiController]
 public class RoomController : ControllerBase
@@ -7,28 +12,54 @@ public class RoomController : ControllerBase
     private readonly IImageService _imageService;
     private readonly IResponseHandler _responseHandler;
     private readonly ILog _logger;
-    public RoomController(IRoomService roomService, IImageService imageService, IResponseHandler responseHandler, ILog logger)
+    private readonly IBookingService _bookingService;
+
+    public RoomController(
+        IRoomService roomService,
+        IImageService imageService,
+        IResponseHandler responseHandler,
+        ILog logger,
+        IBookingService bookingService)
     {
         _roomService = roomService;
         _imageService = imageService;
         _responseHandler = responseHandler;
         _logger = logger;
+        _bookingService = bookingService;
     }
-    /// <summary>
-    /// Retrieves rooms within a specific price range.
-    /// </summary>
-    /// <param name="minPrice">The minimum price of the rooms.</param>
-    /// <param name="maxPrice">The maximum price of the rooms.</param>
-    /// <returns>A list of rooms within the specified price range.</returns>
-    [HttpGet("by-price")]
+
+    [HttpGet("available")]
     [SwaggerOperation(
-        Summary = "Get rooms by price range",
-        Description = "Retrieves a list of rooms within the specified price range.")]
+        Summary = "Get all available rooms based on date range",
+        Description = "Returns rooms where IsAvailable is true and no active booking exists for the specified date range.")]
+    public async Task<IActionResult> GetAvailableRoomsByDate(
+        [FromQuery] int roomClassId,
+        [FromQuery] DateTime checkIn,
+        [FromQuery] DateTime checkOut)
+    {
+        // 1. Release expired bookings
+        await _bookingService.ReleaseExpiredBookingsAsync();
+
+        // 2. Get available rooms (excluding rooms with active bookings in the date range)
+        var rooms = await _roomService.GetAllAvailableRoomsByDateAsync(roomClassId, checkIn, checkOut);
+
+        if (!rooms.Any())
+        {
+            _logger.Log($"No available rooms found for room class ID {roomClassId} between {checkIn} and {checkOut}.", "warning");
+            return _responseHandler.NotFound("No rooms available for the selected period.");
+        }
+
+        return _responseHandler.Success(rooms, "Available rooms retrieved successfully.");
+    }
+
+    [HttpGet("by-price")]
+    [SwaggerOperation(Summary = "Get rooms by price range")]
     [SwaggerResponse(200, "Rooms within the price range retrieved successfully.", typeof(IEnumerable<RoomResponseDto>))]
     [SwaggerResponse(404, "No rooms found within the specified price range.")]
     public async Task<IActionResult> GetRoomsByPriceRange(decimal minPrice, decimal maxPrice)
     {
         var rooms = await _roomService.GetRoomsByPriceRangeAsync(minPrice, maxPrice);
+
         if (!rooms.Any())
         {
             _logger.Log($"No rooms found within the price range {minPrice} - {maxPrice}.", "warning");
@@ -56,13 +87,15 @@ public class RoomController : ControllerBase
             return _responseHandler.BadRequest("No file uploaded.");
         }
 
-        var folderPath = $"rooms/{roomId}";
         var imageType = "Room";
-        var uploadResult = await _imageService.UploadImageAsync(file,imageType, roomId);
+        var uploadResult = await _imageService.UploadImageAsync(file, imageType, roomId);
 
-        return _responseHandler.Success(new { Url = uploadResult.SecureUrl.ToString(), PublicId = uploadResult.PublicId }, "Room added successfully to the room class.");
+        return _responseHandler.Success(new
+        {
+            Url = uploadResult.SecureUrl.ToString(),
+            PublicId = uploadResult.PublicId
+        }, "Room added successfully to the room class.");
     }
-
 
     [HttpDelete("{roomId}/delete-image/{publicId}")]
     [Authorize(Roles = "Admin")]
@@ -86,16 +119,10 @@ public class RoomController : ControllerBase
         return _responseHandler.Success(roomImages, "Rooms retrieved successfully for the room class.");
     }
 
-
-    /// <summary>
-    /// Retrieves available rooms that have no bookings.
-    /// </summary>
-    /// <returns>A list of available rooms with no bookings.</returns>
     [HttpGet("available-without-bookings")]
     [SwaggerOperation(
         Summary = "Get available rooms with no bookings",
-        Description = "Retrieves a list of available rooms that do not have any bookings."
-    )]
+        Description = "Retrieves a list of available rooms that do not have any bookings.")]
     [SwaggerResponse(200, "Available rooms with no bookings retrieved successfully.", typeof(IEnumerable<RoomResponseDto>))]
     [SwaggerResponse(404, "No available rooms found without bookings.")]
     public async Task<IActionResult> GetAvailableRoomsWithNoBookings([FromQuery] int roomClassId)
@@ -111,5 +138,3 @@ public class RoomController : ControllerBase
         return _responseHandler.Success(rooms, "Available rooms with no bookings retrieved successfully.");
     }
 }
-
-
