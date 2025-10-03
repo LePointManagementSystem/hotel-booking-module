@@ -5,5 +5,6 @@
         public Task<Room> GetByIdAsync(int id);
         Task<IEnumerable<Room>> GetRoomsByPriceRangeAsync(decimal minPrice, decimal maxPrice);
         Task<IEnumerable<Room>> GetAvailableRoomsWithNoBookingsAsync(int roomClassId);
+        Task<IEnumerable<Room>> GetRoomsAvailableBetweenDatesAsync(int roomClassId, DateTime checkIn, DateTime checkOut);
     }
 }

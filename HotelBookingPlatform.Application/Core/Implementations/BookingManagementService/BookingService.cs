@@ -1,5 +1,7 @@
-﻿using HotelBookingPlatform.Application.Core.Abstracts.IBookingManagementService;
+﻿using System.Runtime.CompilerServices;
+using HotelBookingPlatform.Application.Core.Abstracts.IBookingManagementService;
 namespace HotelBookingPlatform.Application.Core.Implementations.BookingManagementService;
+
 public class BookingService : BaseService<Booking>, IBookingService
 {
     private readonly IConfirmationNumberGeneratorService _confirmationNumberGeneratorService;
@@ -87,7 +89,12 @@ public class BookingService : BaseService<Booking>, IBookingService
         {
             var room = await _unitOfWork.RoomRepository.GetByIdAsync(roomId);
             if (room is not null)
+            {
+                room.IsAvailable = false;
                 booking.Rooms.Add(room);
+                await _unitOfWork.RoomRepository.UpdateAsync(room.RoomID, room);
+            }
+                
         }
 
         await _unitOfWork.BookingRepository.CreateAsync(booking);
@@ -110,5 +117,42 @@ public class BookingService : BaseService<Booking>, IBookingService
         await _unitOfWork.BookingRepository.UpdateBookingStatusAsync(bookingId, newStatus);
         await _unitOfWork.SaveChangesAsync();
     }
+
+  public async Task<List<object>> ReleaseExpiredBookingsAsync()
+{
+    var now = DateTime.UtcNow;
+    var expiredBookings = await _unitOfWork.BookingRepository.GetExpiredBookingsWithRoomsAsync(now);
+    var releasedData = new List<object>();
+
+    foreach (var booking in expiredBookings)
+    {
+        booking.Status = BookingStatus.Completed;
+        await _unitOfWork.BookingRepository.UpdateAsync(booking.BookingID, booking); // <-- ✅ important
+
+        foreach (var room in booking.Rooms)
+        {
+            room.IsAvailable = true;
+
+            // ✅ Marque explicitement la chambre comme modifiée
+            await _unitOfWork.RoomRepository.UpdateAsync(room.RoomID, room);
+
+            releasedData.Add(new
+            {
+                BookingId = booking.BookingID,
+                RoomId = room.RoomID,
+                RoomNumber = room.Number,
+                BookingExpiredAt = booking.CheckOutDateUtc,
+                StatusUpdateTo = "Completed"
+            });
+        }
+    }
+
+    await _unitOfWork.SaveChangesAsync();
+    return releasedData;
+}
+
+
+
+
 }
 

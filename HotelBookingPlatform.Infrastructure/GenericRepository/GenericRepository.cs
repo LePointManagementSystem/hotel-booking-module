@@ -62,15 +62,12 @@
 
         public async Task<T> UpdateAsync(int id, T entity)
         {
-            var existingEntity = await _appDbContext.Set<T>().FindAsync(id);
-
-            if (existingEntity is null)
+            var tracked = await _appDbContext.Set<T>().FindAsync(id);
+            if (tracked is null)
                 throw new KeyNotFoundException($"Entity with ID {id} not found.");
 
-            _appDbContext.Entry(existingEntity).CurrentValues.SetValues(entity);
-            await _appDbContext.SaveChangesAsync();
-
-            return existingEntity;
+            _appDbContext.Entry(tracked).CurrentValues.SetValues(entity);
+            return tracked;
         }
     }
 }

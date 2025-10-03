@@ -52,6 +52,31 @@
                 .Where(b => b.UserId == userId && b.HotelId == hotelId)
                 .FirstOrDefaultAsync();
         }
+
+        public async Task<IEnumerable<Booking>> GetExpiredBookingsAsync(DateTime now)
+        {
+
+            return await _appDbContext.Bookings
+                .Include(b => b.Rooms)
+                .Where(b => b.CheckOutDateUtc <= now && b.Status != BookingStatus.Completed)
+                .AsSplitQuery()
+                .ToListAsync();
+        }
+
+        public async Task<List<Booking>> GetExpiredBookingsWithRoomsAsync(DateTime currentUtcTime)
+        {
+
+            return await _appDbContext.Bookings
+                .Include(b => b.Rooms)
+                .Where(b =>
+                (b.Status == BookingStatus.Pending || b.Status == BookingStatus.Confirmed) &&
+                b.CheckOutDateUtc <= currentUtcTime)
+                .ToListAsync();
+        }
+
+
     }
+
+    
 
 }

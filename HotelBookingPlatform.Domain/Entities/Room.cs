@@ -12,5 +12,7 @@
         public RoomClass RoomClass { get; set; }
         public ICollection<Booking> Bookings { get; set; }
         public ICollection<Discount> Discounts { get; set; }
+        public bool IsAvailable { get; set; } = true;
+
     }
 }
