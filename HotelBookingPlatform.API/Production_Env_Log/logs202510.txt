@@ -1,0 +1,48 @@
+2025-10-02 20:07:31.978 -04:00 [DBG] Registered model binder providers, in the following order: ["Microsoft.AspNetCore.Mvc.ModelBinding.Binders.BinderTypeModelBinderProvider","Microsoft.AspNetCore.Mvc.ModelBinding.Binders.ServicesModelBinderProvider","Microsoft.AspNetCore.Mvc.ModelBinding.Binders.BodyModelBinderProvider","Microsoft.AspNetCore.Mvc.ModelBinding.Binders.HeaderModelBinderProvider","Microsoft.AspNetCore.Mvc.ModelBinding.Binders.FloatingPointTypeModelBinderProvider","Microsoft.AspNetCore.Mvc.ModelBinding.Binders.EnumTypeModelBinderProvider","Microsoft.AspNetCore.Mvc.ModelBinding.Binders.DateTimeModelBinderProvider","Microsoft.AspNetCore.Mvc.ModelBinding.Binders.SimpleTypeModelBinderProvider","Microsoft.AspNetCore.Mvc.ModelBinding.Binders.TryParseModelBinderProvider","Microsoft.AspNetCore.Mvc.ModelBinding.Binders.CancellationTokenModelBinderProvider","Microsoft.AspNetCore.Mvc.ModelBinding.Binders.ByteArrayModelBinderProvider","Microsoft.AspNetCore.Mvc.ModelBinding.Binders.FormFileModelBinderProvider","Microsoft.AspNetCore.Mvc.ModelBinding.Binders.FormCollectionModelBinderProvider","Microsoft.AspNetCore.Mvc.ModelBinding.Binders.KeyValuePairModelBinderProvider","Microsoft.AspNetCore.Mvc.ModelBinding.Binders.DictionaryModelBinderProvider","Microsoft.AspNetCore.Mvc.ModelBinding.Binders.ArrayModelBinderProvider","Microsoft.AspNetCore.Mvc.ModelBinding.Binders.CollectionModelBinderProvider","Microsoft.AspNetCore.Mvc.ModelBinding.Binders.ComplexObjectModelBinderProvider"]
+2025-10-02 20:07:32.080 -04:00 [DBG] Hosting starting
+2025-10-02 20:07:32.100 -04:00 [INF] User profile is available. Using '/Users/jovanyantoine/.aspnet/DataProtection-Keys' as key repository; keys will not be encrypted at rest.
+2025-10-02 20:07:32.105 -04:00 [DBG] Reading data from file '/Users/jovanyantoine/.aspnet/DataProtection-Keys/key-0fe9d396-3b89-4b0c-9d64-afc88ce9337b.xml'.
+2025-10-02 20:07:32.109 -04:00 [DBG] Found key {0fe9d396-3b89-4b0c-9d64-afc88ce9337b}.
+2025-10-02 20:07:32.112 -04:00 [DBG] Considering key {0fe9d396-3b89-4b0c-9d64-afc88ce9337b} with expiration date 2025-10-17 14:17:41Z as default key.
+2025-10-02 20:07:32.113 -04:00 [DBG] Forwarded activator type request from Microsoft.AspNetCore.DataProtection.AuthenticatedEncryption.ConfigurationModel.AuthenticatedEncryptorDescriptorDeserializer, Microsoft.AspNetCore.DataProtection, Version=8.0.0.0, Culture=neutral, PublicKeyToken=adb9793829ddae60 to Microsoft.AspNetCore.DataProtection.AuthenticatedEncryption.ConfigurationModel.AuthenticatedEncryptorDescriptorDeserializer, Microsoft.AspNetCore.DataProtection, Culture=neutral, PublicKeyToken=adb9793829ddae60
+2025-10-02 20:07:32.120 -04:00 [DBG] Using managed symmetric algorithm 'System.Security.Cryptography.Aes'.
+2025-10-02 20:07:32.120 -04:00 [DBG] Using managed keyed hash algorithm 'System.Security.Cryptography.HMACSHA256'.
+2025-10-02 20:07:32.148 -04:00 [DBG] Using key {0fe9d396-3b89-4b0c-9d64-afc88ce9337b} as the default key.
+2025-10-02 20:07:32.148 -04:00 [DBG] Key ring with default key {0fe9d396-3b89-4b0c-9d64-afc88ce9337b} was loaded during application startup.
+2025-10-02 20:07:32.175 -04:00 [INF] Now listening on: http://localhost:5004
+2025-10-02 20:07:32.175 -04:00 [DBG] Loaded hosting startup assembly HotelBookingPlatform.API
+2025-10-02 20:07:32.175 -04:00 [INF] Application started. Press Ctrl+C to shut down.
+2025-10-02 20:07:32.175 -04:00 [INF] Hosting environment: Development
+2025-10-02 20:07:32.175 -04:00 [INF] Content root path: /Users/jovanyantoine/hotel-booking-module/HotelBookingPlatform.API
+2025-10-02 20:07:32.175 -04:00 [DBG] Hosting started
+2025-10-02 20:07:55.958 -04:00 [DBG] Connection id "0HNG223JNNT63" accepted.
+2025-10-02 20:07:55.959 -04:00 [DBG] Connection id "0HNG223JNNT63" started.
+2025-10-02 20:07:55.959 -04:00 [DBG] Connection id "0HNG223JNNT64" accepted.
+2025-10-02 20:07:55.959 -04:00 [DBG] Connection id "0HNG223JNNT64" started.
+2025-10-02 20:07:55.979 -04:00 [INF] Request starting HTTP/1.1 GET http://localhost:5004/swagger/index.html - null null
+2025-10-02 20:07:55.981 -04:00 [DBG] Wildcard detected, all requests with hosts will be allowed.
+2025-10-02 20:07:55.998 -04:00 [DBG] No candidates found for the request path '/swagger/index.html'
+2025-10-02 20:07:55.999 -04:00 [DBG] Request did not match any endpoints
+2025-10-02 20:07:56.055 -04:00 [DBG] Connection id "0HNG223JNNT63" completed keep alive response.
+2025-10-02 20:07:56.056 -04:00 [INF] Request finished HTTP/1.1 GET http://localhost:5004/swagger/index.html - 200 null text/html;charset=utf-8 77.9462ms
+2025-10-02 20:07:56.069 -04:00 [INF] Request starting HTTP/1.1 GET http://localhost:5004/swagger/index.js - null null
+2025-10-02 20:07:56.070 -04:00 [DBG] No candidates found for the request path '/swagger/index.js'
+2025-10-02 20:07:56.070 -04:00 [DBG] Request did not match any endpoints
+2025-10-02 20:07:56.071 -04:00 [DBG] Connection id "0HNG223JNNT63" completed keep alive response.
+2025-10-02 20:07:56.072 -04:00 [INF] Request finished HTTP/1.1 GET http://localhost:5004/swagger/index.js - 200 null application/javascript;charset=utf-8 2.7292ms
+2025-10-02 20:07:56.268 -04:00 [INF] Request starting HTTP/1.1 GET http://localhost:5004/swagger/v1/swagger.json - null null
+2025-10-02 20:07:56.268 -04:00 [DBG] No candidates found for the request path '/swagger/v1/swagger.json'
+2025-10-02 20:07:56.268 -04:00 [DBG] Request did not match any endpoints
+2025-10-02 20:07:56.377 -04:00 [DBG] Connection id "0HNG223JNNT63" completed keep alive response.
+2025-10-02 20:07:56.377 -04:00 [INF] Request finished HTTP/1.1 GET http://localhost:5004/swagger/v1/swagger.json - 200 null application/json;charset=utf-8 109.4326ms
+2025-10-02 20:09:46.883 -04:00 [DBG] Connection id "0HNG223JNNT64" received FIN.
+2025-10-02 20:09:46.883 -04:00 [DBG] Connection id "0HNG223JNNT63" received FIN.
+2025-10-02 20:09:46.887 -04:00 [DBG] Connection id "0HNG223JNNT63" sending FIN because: "The Socket transport's send loop completed gracefully."
+2025-10-02 20:09:46.887 -04:00 [DBG] Connection id "0HNG223JNNT64" sending FIN because: "The Socket transport's send loop completed gracefully."
+2025-10-02 20:09:46.890 -04:00 [DBG] Connection id "0HNG223JNNT63" disconnecting.
+2025-10-02 20:09:46.890 -04:00 [DBG] Connection id "0HNG223JNNT64" disconnecting.
+2025-10-02 20:09:46.892 -04:00 [DBG] Connection id "0HNG223JNNT64" stopped.
+2025-10-02 20:09:46.892 -04:00 [DBG] Connection id "0HNG223JNNT63" stopped.
+2025-10-02 20:10:35.872 -04:00 [INF] Application is shutting down...
+2025-10-02 20:10:35.874 -04:00 [DBG] Hosting stopping
+2025-10-02 20:10:35.881 -04:00 [DBG] Hosting stopped
