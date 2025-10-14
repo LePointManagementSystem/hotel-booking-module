@@ -2,6 +2,7 @@
 
 public interface IRoomClassService
 {
+    Task<RoomResponseDto> AddRoomToRoomClassAsync(int roomClassId, RoomCreateRequest request);
     Task<RoomClassResponseDto> CreateRoomClass(RoomClassRequestDto request);
     Task<RoomClassResponseDto> GetRoomClassById(int id);
     Task<RoomClassResponseDto> UpdateRoomClass(int id, RoomClassRequestDto request);

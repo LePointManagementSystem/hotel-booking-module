@@ -67,6 +67,8 @@
                 throw new KeyNotFoundException($"Entity with ID {id} not found.");
 
             _appDbContext.Entry(tracked).CurrentValues.SetValues(entity);
+            
+            await _appDbContext.SaveChangesAsync();
             return tracked;
         }
     }
