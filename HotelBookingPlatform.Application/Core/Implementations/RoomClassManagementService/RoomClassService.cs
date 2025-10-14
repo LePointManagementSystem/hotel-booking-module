@@ -41,6 +41,23 @@ public class RoomClassService : IRoomClassService
         return _mapper.Map<RoomClassResponseDto>(roomClass);
     }
 
+    public async Task<RoomResponseDto> AddRoomToRoomClassAsync(int roomClassId, RoomCreateRequest request)
+    {
+        var roomClass = await _unitOfWork.RoomClasseRepository.GetByIdAsync(roomClassId);
+        if (roomClass == null)
+            throw new NotFoundException("Room class not found.");
+
+        var room = _mapper.Map<Room>(request);
+        room.RoomClassID = roomClassId;
+        room.CreatedAtUtc = DateTime.UtcNow;
+        room.IsAvailable = true;
+
+        await _unitOfWork.RoomRepository.CreateAsync(room);
+        await _unitOfWork.SaveChangesAsync();
+
+        return _mapper.Map<RoomResponseDto>(room);
+    }
+
     public async Task<RoomClassResponseDto> GetRoomClassById(int id)
     {
         var roomClass = await _unitOfWork.RoomClasseRepository.GetByIdAsync(id);
@@ -57,7 +74,8 @@ public class RoomClassService : IRoomClassService
             throw new NotFoundException("Room class not found.");
 
         _mapper.Map(request, roomClass);
-        _unitOfWork.RoomClasseRepository.UpdateAsync(id,roomClass);
+        await _unitOfWork.RoomClasseRepository.UpdateAsync(id,roomClass);
+        await _unitOfWork.SaveChangesAsync();
 
         return _mapper.Map<RoomClassResponseDto>(roomClass);
     }

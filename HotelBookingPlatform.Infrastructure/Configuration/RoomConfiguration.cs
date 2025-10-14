@@ -6,6 +6,9 @@
         {
             builder.HasKey(r => r.RoomID);
 
+            builder.Property(r => r.RoomID)
+                    .ValueGeneratedOnAdd();
+
             builder.Property(r => r.Number)
                    .IsRequired()
                    .HasMaxLength(50);

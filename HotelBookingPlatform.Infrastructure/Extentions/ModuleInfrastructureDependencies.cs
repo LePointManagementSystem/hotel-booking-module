@@ -18,6 +18,7 @@
             services.AddScoped<IUserRepository, UserRepository>();
             services.AddScoped<IHotelRepository, HotelRepository>();
             services.AddScoped<IImageRepository, ImageRepository>();
+            services.AddScoped<IStaffRepository, StaffRepository>();
             return services;
         }
     }

@@ -14,6 +14,7 @@
         IInvoiceRecordRepository InvoiceRecordRepository { get; }
         IAmenityRepository AmenityRepository { get; }
         IUserRepository UserRepository { get; }
+        IStaffRepository StaffRepository { get; }
         Task<int> SaveChangesAsync();
     }
 }

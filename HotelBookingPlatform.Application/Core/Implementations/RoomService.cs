@@ -34,6 +34,19 @@ public class RoomService : BaseService<Room>, IRoomService
         var roomDto = _mapper.Map<RoomResponseDto>(room);
         return roomDto;
     }
+
+    public async Task<RoomResponseDto> AddRoomToRoomClassAsync(int roomClassId, RoomCreateRequest request)
+    {
+        var room = _mapper.Map<Room>(request);
+        room.RoomClassID = roomClassId;
+        room.CreatedAtUtc = DateTime.UtcNow;
+        room.IsAvailable = true;
+
+        await _unitOfWork.RoomRepository.CreateAsync(room);
+        await _unitOfWork.SaveChangesAsync();
+
+        return _mapper.Map<RoomResponseDto>(room);
+    }
     public async Task<RoomResponseDto> UpdateRoomAsync(int id, RoomCreateRequest request)
     {
         var existingRoom = await _unitOfWork.RoomRepository.GetByIdAsync(id);
