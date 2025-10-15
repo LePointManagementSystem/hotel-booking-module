@@ -3,6 +3,7 @@ using System;
 using HotelBookingPlatform.Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -11,9 +12,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace HotelBookingPlatform.Infrastructure.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20251014115406_MakeUserIdNullableInStaff")]
+    partial class MakeUserIdNullableInStaff
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -612,7 +615,8 @@ namespace HotelBookingPlatform.Infrastructure.Migrations
 
                     b.HasIndex("Email");
 
-                    b.HasIndex("UserId");
+                    b.HasIndex("UserId")
+                        .IsUnique();
 
                     b.HasIndex("HotelId", "IsActive");
 
@@ -957,8 +961,8 @@ namespace HotelBookingPlatform.Infrastructure.Migrations
                         .IsRequired();
 
                     b.HasOne("HotelBookingPlatform.Domain.Entities.LocalUser", "User")
-                        .WithMany()
-                        .HasForeignKey("UserId")
+                        .WithOne()
+                        .HasForeignKey("HotelBookingPlatform.Domain.Entities.Staff", "UserId")
                         .OnDelete(DeleteBehavior.SetNull);
 
                     b.Navigation("Hotel");

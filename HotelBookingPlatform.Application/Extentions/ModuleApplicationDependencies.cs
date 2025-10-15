@@ -5,6 +5,10 @@ using HotelBookingPlatform.Application.Core.Abstracts.RoomClassManagementService
 using HotelBookingPlatform.Application.Core.Implementations.BookingManagementService;
 using HotelBookingPlatform.Application.Core.Implementations.HotelManagementService;
 using HotelBookingPlatform.Application.Core.Implementations.RoomClassManagementService;
+using HotelBookingPlatform.Application.Core.Abstracts.StaffManagementService;
+using HotelBookingPlatform.Application.Core.Implementations.StaffManagementService;
+
+
 using System.Reflection;
 using FluentValidation;
 using Microsoft.Extensions.DependencyInjection;
@@ -42,6 +46,8 @@ public static class ModuleApplicationDependencies
         services.AddScoped<IHotelAmenityService, HotelAmenityService>();
         services.AddScoped<IHotelReviewService, HotelReviewService>();
         services.AddScoped<IHotelRoomService, HotelRoomService>();
+        services.AddScoped<IStaffService, StaffService>();
+
 
         services.AddAutoMapper(Assembly.GetExecutingAssembly());
 

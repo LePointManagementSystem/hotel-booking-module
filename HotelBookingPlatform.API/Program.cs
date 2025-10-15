@@ -3,6 +3,8 @@ using AutoMapper;
 using HotelBookingPlatform.API.Profiles;
 
 
+
+
 var builder = WebApplication.CreateBuilder(args);
 
 // Configure Serilog
