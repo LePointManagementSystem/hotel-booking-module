@@ -8,7 +8,7 @@ namespace HotelBookingPlatform.Domain.DTOs.Staff
         public string? Email { get; set; }
         public string? PhoneNumber { get; set; }
         public int HotelId { get; set; }
-        public string? UserId { get; set; }
+        //public string? UserId { get; set; }
         // public bool IsActive { get; set; } = true;
         public bool? IsActive { get; set; }
 

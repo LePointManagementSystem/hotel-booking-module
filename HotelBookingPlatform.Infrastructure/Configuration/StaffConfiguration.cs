@@ -24,8 +24,8 @@ namespace HotelBookingPlatform.Infrastructure.Configuration
                     .OnDelete(DeleteBehavior.Cascade);
 
             builder.HasOne(s => s.User)
-                    .WithOne()
-                    .HasForeignKey<Staff>(s => s.UserId)
+                    .WithMany()
+                    .HasForeignKey(s => s.UserId)
                     .IsRequired(false)
                     .OnDelete(DeleteBehavior.SetNull);
 
