@@ -3,6 +3,8 @@ namespace HotelBookingPlatform.Domain.DTOs.Staff
     public class StaffResponseDto
     {
         public int StaffId { get; set; }
+        public string FirstName { get; set; }
+        public string LastName { get; set; }
         public string FullName { get; set; }
         public string Role { get; set; }
         public string? Email { get; set; }
