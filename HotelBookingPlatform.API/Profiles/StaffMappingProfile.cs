@@ -16,7 +16,8 @@ namespace HotelBookingPlatform.API.Profiles
                 .ForMember(dest => dest.IsActive, opt => opt.MapFrom(src => src.IsActive ?? true));
 
             CreateMap<Staff, StaffResponseDto>()
-                .ForMember(dest => dest.HotelName, opt => opt.MapFrom(src => src.Hotel != null ? src.Hotel.Name : null));
+                .ForMember(dest => dest.HotelName, opt => opt.MapFrom(src => src.Hotel != null ? src.Hotel.Name : null))
+                .ForMember(dest => dest.FullName, opt => opt.MapFrom(src => $"{src.FirstName} {src.LastName}"));
         }
     }
 }

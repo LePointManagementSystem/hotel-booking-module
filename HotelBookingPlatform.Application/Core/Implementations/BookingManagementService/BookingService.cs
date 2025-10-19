@@ -114,9 +114,37 @@ public class BookingService : BaseService<Booking>, IBookingService
         if (booking.Status == BookingStatus.Completed && newStatus != BookingStatus.Completed)
             throw new InvalidOperationException("Cannot change the status of a completed booking.");
 
-        await _unitOfWork.BookingRepository.UpdateBookingStatusAsync(bookingId, newStatus);
+        // Update of statut
+        booking.Status = newStatus;
+
+        //available of room
+        if (booking.Rooms != null && booking.Rooms.Any())
+        {
+            if (newStatus == BookingStatus.Cancelled || newStatus == BookingStatus.Completed)
+            {
+                foreach (var room in booking.Rooms)
+                {
+                    room.IsAvailable = true;
+
+                    await _unitOfWork.RoomRepository.UpdateAsync(room.RoomID, room);
+
+                }
+            }
+            else if (newStatus == BookingStatus.Confirmed)
+            {
+                foreach (var room in booking.Rooms)
+                {
+                    room.IsAvailable = false;
+
+                    await _unitOfWork.RoomRepository.UpdateAsync(room.RoomID, room);
+                }
+            }
+        }
+        await _unitOfWork.BookingRepository.UpdateAsync(booking.BookingID, booking);
         await _unitOfWork.SaveChangesAsync();
-    }
+        }
+        
+    
 
   public async Task<List<object>> ReleaseExpiredBookingsAsync()
 {

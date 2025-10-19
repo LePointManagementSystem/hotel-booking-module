@@ -5,6 +5,8 @@
 
         Task<IEnumerable<Booking>> GetAllBookingsAsync();
         Task<Booking> GetByIdAsync(int id);
+        Task<Booking?> GetByIdWithRoomsAsync(int id);
+
         Task UpdateBookingStatusAsync(int bookingId, BookingStatus newStatus);
         Task<Booking> GetBookingByUserAndHotelAsync(string userId, int hotelId);
         Task<IEnumerable<Booking>> GetExpiredBookingsAsync(DateTime now);
