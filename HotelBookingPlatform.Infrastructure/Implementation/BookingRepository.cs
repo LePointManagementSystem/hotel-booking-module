@@ -46,6 +46,15 @@
                 .Include(b => b.User).AsSplitQuery()
                 .FirstOrDefaultAsync(b => b.BookingID == id);
         }
+
+        public async Task<Booking?> GetByIdWithRoomsAsync(int id)
+    {
+    return await _appDbContext.Bookings
+        .Include(b => b.Rooms)
+        .AsSplitQuery()
+        .FirstOrDefaultAsync(b => b.BookingID == id);
+    }
+
         public async Task<Booking> GetBookingByUserAndHotelAsync(string userId, int hotelId)
         {
             return await _appDbContext.Bookings.AsNoTracking()
