@@ -154,28 +154,38 @@ public class BookingService : BaseService<Booking>, IBookingService
 
     foreach (var booking in expiredBookings)
     {
-        booking.Status = BookingStatus.Completed;
-        await _unitOfWork.BookingRepository.UpdateAsync(booking.BookingID, booking); // <-- ✅ important
-
-        foreach (var room in booking.Rooms)
+        // Only process bookings that aren't already completed or cancelled
+        if (booking.Status != BookingStatus.Completed && booking.Status != BookingStatus.Cancelled)
         {
-            room.IsAvailable = true;
+            booking.Status = BookingStatus.Completed;
+            await _unitOfWork.BookingRepository.UpdateAsync(booking.BookingID, booking);
 
-            // ✅ Marque explicitement la chambre comme modifiée
-            await _unitOfWork.RoomRepository.UpdateAsync(room.RoomID, room);
-
-            releasedData.Add(new
+            if (booking.Rooms != null)
             {
-                BookingId = booking.BookingID,
-                RoomId = room.RoomID,
-                RoomNumber = room.Number,
-                BookingExpiredAt = booking.CheckOutDateUtc,
-                StatusUpdateTo = "Completed"
-            });
+                foreach (var room in booking.Rooms)
+                {
+                    room.IsAvailable = true;
+                    await _unitOfWork.RoomRepository.UpdateAsync(room.RoomID, room);
+
+                    releasedData.Add(new
+                    {
+                        BookingId = booking.BookingID,
+                        RoomId = room.RoomID,
+                        RoomNumber = room.Number,
+                        BookingExpiredAt = booking.CheckOutDateUtc,
+                        StatusUpdateTo = "Completed",
+                        LastModifiedUtc = DateTime.UtcNow
+                    });
+                }
+            }
         }
     }
 
-    await _unitOfWork.SaveChangesAsync();
+    if (releasedData.Any())
+    {
+        await _unitOfWork.SaveChangesAsync();
+    }
+    
     return releasedData;
 }
 
