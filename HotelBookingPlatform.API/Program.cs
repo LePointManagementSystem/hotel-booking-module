@@ -1,6 +1,7 @@
 using Serilog;
 using AutoMapper;
 using HotelBookingPlatform.API.Profiles;
+using HotelBookingPlatform.Application.Services;
 
 
 
@@ -25,6 +26,11 @@ builder.Services.AddCors(options => {
             .AllowCredentials();      
     });
 });
+
+// Configure and register booking cleanup service
+builder.Services.Configure<BookingCleanupOptions>(
+    builder.Configuration.GetSection(BookingCleanupOptions.ConfigSection));
+builder.Services.AddHostedService<BookingCleanupBackgroundService>();
 
 // Add custom dependencies
 builder.Services.AddApplicationDependencies()
