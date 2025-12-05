@@ -34,7 +34,6 @@ namespace HotelBookingPlatform.Infrastructure.Implementation
                 .Include(r => r.RoomClass)
                 .Where(r =>
                 r.RoomClassID == roomClassId &&
-                r.IsAvailable &&
                 !bookedRoomIds.Contains(r.RoomID)
                 )
                 .ToListAsync();
@@ -48,6 +47,18 @@ namespace HotelBookingPlatform.Infrastructure.Implementation
             return await _appDbContext.Rooms
                 .Include(r => r.RoomClass)
                 .FirstOrDefaultAsync(r => r.RoomID == id);
+        }
+
+        public async Task<bool> HasBookingConflictAsync(int roomId, DateTime checkInUtc, DateTime checkOutUtc, int? ignoreBookingId = null)
+        {
+            return await _appDbContext.Bookings
+                .Where(b => 
+                (b.Status == BookingStatus.Pending || b.Status == BookingStatus.Confirmed) && 
+                b.Rooms.Any(r => r.RoomID == roomId))
+                .Where(b => ignoreBookingId == null || b.BookingID != ignoreBookingId)
+                .AnyAsync(b => 
+                b.CheckInDateUtc < checkOutUtc && 
+                b.CheckOutDateUtc > checkInUtc);
         }
 
         public async Task<IEnumerable<Room>> GetRoomsAvailableBetweenDatesAsync(int roomClassId, DateTime checkIn, DateTime checkOut)
@@ -68,7 +79,7 @@ namespace HotelBookingPlatform.Infrastructure.Implementation
                 .Include(r => r.RoomClass)
                 .Where(r =>
                     r.RoomClassID == roomClassId &&
-                    r.IsAvailable && // Optionnel : si tu gères aussi manuellement la dispo
+                     // Optionnel : si tu gères aussi manuellement la dispo
                     !bookedRoomIds.Contains(r.RoomID)
                 )
                 .ToListAsync();

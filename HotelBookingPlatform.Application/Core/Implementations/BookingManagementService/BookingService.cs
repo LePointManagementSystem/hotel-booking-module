@@ -48,25 +48,37 @@ public class BookingService : BaseService<Booking>, IBookingService
         if (user is null)
             throw new NotFoundException("User not found.");
 
-        var checkOut = request.DurationType switch
+        var (checkInUtc, checkOutUtc) = request.DurationType switch
         {
-            BookingDurationType.Hours2 => request.CheckInDateUtc.AddHours(2),
-            BookingDurationType.Hours4 => request.CheckInDateUtc.AddHours(4),
-            BookingDurationType.Overnight => request.CheckInDateUtc.AddHours(24),
-            _ => throw new ArgumentOutOfRangeException()
+            BookingDurationType.Hours2 => (request.CheckInDateUtc, request.CheckInDateUtc.AddHours(2)),
+
+            BookingDurationType.Hours4 => (request.CheckInDateUtc, request.CheckInDateUtc.AddHours(4)),
+
+            BookingDurationType.Overnight => CalculateOvernightRange(request.CheckInDateUtc),
+
+            _ => throw new ArgumentOutOfRangeException(nameof(request.DurationType),
+            request.DurationType,
+            "Unsupported booking duration type.")
         };
 
-        var totalPrice = await _priceCalculationService.CalculateTotalPriceAsync(
-            request.RoomIds.ToList(),
-            request.CheckInDateUtc,
-            checkOut
-        );
+        foreach (var roomId in request.RoomIds)
+        {
+            var hasConflict = await _unitOfWork.RoomRepository
+                .HasBookingConflictAsync(roomId, checkInUtc, checkOutUtc);
 
-        var discountedTotalPrice = await _priceCalculationService.CalculateDiscountedPriceAsync(
-            request.RoomIds.ToList(),
-            request.CheckInDateUtc,
-            checkOut
-        );
+            if (hasConflict)
+            {
+                throw new InvalidOperationException($"Room {roomId} is not available for the selected time slot.");
+            }
+        }
+
+        var totalPrice = await _priceCalculationService.CalculateTotalPriceAsync(request.RoomIds.ToList(),
+        checkInUtc,
+        checkOutUtc);
+
+        var discountedTotalPrice = await _priceCalculationService.CalculateDiscountedPriceAsync(request.RoomIds.ToList(),
+        checkInUtc,
+        checkOutUtc);
 
         var booking = new Booking
         {
@@ -78,11 +90,11 @@ public class BookingService : BaseService<Booking>, IBookingService
             BookingDateUtc = DateTime.UtcNow,
             PaymentMethod = request.PaymentMethod,
             Hotel = await _unitOfWork.HotelRepository.GetByIdAsync(request.HotelId),
-            CheckInDateUtc = request.CheckInDateUtc,
-            CheckOutDateUtc = checkOut,
+            CheckInDateUtc = checkInUtc,
+            CheckOutDateUtc = checkOutUtc,
             DurationType = request.DurationType,
             Status = BookingStatus.Pending,
-            Rooms = new List<Room>()
+            Rooms = new List<Room> ()
         };
 
         foreach (var roomId in request.RoomIds)
@@ -90,13 +102,10 @@ public class BookingService : BaseService<Booking>, IBookingService
             var room = await _unitOfWork.RoomRepository.GetByIdAsync(roomId);
             if (room is not null)
             {
-                room.IsAvailable = false;
                 booking.Rooms.Add(room);
-                await _unitOfWork.RoomRepository.UpdateAsync(room.RoomID, room);
             }
-                
         }
-
+        
         await _unitOfWork.BookingRepository.CreateAsync(booking);
         await _unitOfWork.SaveChangesAsync();
 
@@ -143,6 +152,20 @@ public class BookingService : BaseService<Booking>, IBookingService
         await _unitOfWork.BookingRepository.UpdateAsync(booking.BookingID, booking);
         await _unitOfWork.SaveChangesAsync();
         }
+
+
+private (DateTime checkInUtc, DateTime checkOutUtc) CalculateOvernightRange(DateTime requestCheckInUtc)
+    {
+        var local = requestCheckInUtc.ToLocalTime();
+
+        var overnightDate = local.Date;
+
+        var checkInLocal = overnightDate.AddHours(20);
+
+        var checkOutLocal = overnightDate.AddDays(1).AddHours(9);
+
+        return (checkInLocal.ToUniversalTime(),checkOutLocal.ToUniversalTime());
+    }
         
     
 
