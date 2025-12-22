@@ -9,7 +9,11 @@ public class BookingMappingProfile :Profile
         .ForMember(dest => dest.PaymentMethod, opt => opt.MapFrom(src => src.PaymentMethod.ToString()))
         .ForMember(dest => dest.HotelName, opt => opt.MapFrom(src => src.Hotel.Name))
         .ForMember(dest => dest.Numbers, opt => opt.MapFrom(src => src.Rooms.Select(r => r.Number).ToList()))
-        .ForMember(dest => dest.UserName, opt => opt.MapFrom(src => src.User.UserName));
+        .ForMember(dest => dest.UserName, opt => opt.MapFrom(src => src.User.UserName))
+        .ForMember(dest => dest.GuestId, opt => opt.MapFrom(src => src.GuestId))
+        .ForMember(dest => dest.GuestFirstName, opt => opt.MapFrom(src => src.Guest != null ? src.Guest.FirstName : null))
+        .ForMember(dest => dest.GuestLastName, opt => opt.MapFrom(src => src.Guest != null ? src.Guest.LastName : null))
+        .ForMember(dest => dest.GuestCIN, opt => opt.MapFrom(src => src.Guest != null ? src.Guest.CIN : null));
 
 
         CreateMap<BookingCreateRequest, Booking>()
