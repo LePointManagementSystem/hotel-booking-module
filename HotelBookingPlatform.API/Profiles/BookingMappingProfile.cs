@@ -4,6 +4,7 @@ public class BookingMappingProfile :Profile
     public BookingMappingProfile()
     {
         CreateMap<Booking, BookingDto>()
+        .ForMember(dest => dest.HotelId, opt => opt.MapFrom(src => src.HotelId))
         .ForMember(dest => dest.Status, opt => opt.MapFrom(src => src.Status.ToString()))
         .ForMember(dest => dest.PaymentMethod, opt => opt.MapFrom(src => src.PaymentMethod.ToString()))
         .ForMember(dest => dest.HotelName, opt => opt.MapFrom(src => src.Hotel.Name))
