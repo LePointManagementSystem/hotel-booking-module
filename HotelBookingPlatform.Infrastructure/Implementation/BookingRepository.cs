@@ -15,6 +15,18 @@
             .AsSplitQuery()
             .ToListAsync();
         }
+
+        public async Task<IEnumerable<Booking>> GetBookingsByHotelAsync(int hotelId)
+        {
+            return await _appDbContext.Bookings
+                .Include(b => b.Hotel)
+                .Include(b => b.Rooms)
+                .Include(b => b.User)
+                .Include(b => b.Guest)
+                .Where(b => b.HotelId == hotelId)
+                .AsSplitQuery()
+                .ToListAsync();
+        }
         public async Task UpdateBookingStatusAsync(int bookingId, BookingStatus newStatus)
         {
             var booking = await _appDbContext.Bookings.FindAsync(bookingId);
@@ -43,7 +55,9 @@
             return await _appDbContext.Bookings
                 .Include(b => b.Hotel)
                 .Include(b => b.Rooms)
-                .Include(b => b.User).AsSplitQuery()
+                .Include(b => b.User)
+                .Include(b => b.Guest)
+                .AsSplitQuery()
                 .FirstOrDefaultAsync(b => b.BookingID == id);
         }
 

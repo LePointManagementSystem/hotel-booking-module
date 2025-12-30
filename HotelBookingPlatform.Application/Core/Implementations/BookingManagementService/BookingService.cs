@@ -1,20 +1,25 @@
 ﻿using System.Runtime.CompilerServices;
 using HotelBookingPlatform.Application.Core.Abstracts.IBookingManagementService;
+using HotelBookingPlatform.Domain.Abstracts;
+using HotelBookingPlatform.Domain.Entities;
 namespace HotelBookingPlatform.Application.Core.Implementations.BookingManagementService;
 
 public class BookingService : BaseService<Booking>, IBookingService
 {
     private readonly IConfirmationNumberGeneratorService _confirmationNumberGeneratorService;
+    private readonly UserManager<LocalUser> _userManager;
     private readonly IPriceCalculationService _priceCalculationService;
     public BookingService(
         IUnitOfWork<Booking> unitOfWork,
         IMapper mapper,
         IConfirmationNumberGeneratorService confirmationNumberGeneratorService,
-        IPriceCalculationService priceCalculationService)
+        IPriceCalculationService priceCalculationService,
+        UserManager<LocalUser> userManager)
         : base(unitOfWork, mapper)
     {
         _confirmationNumberGeneratorService = confirmationNumberGeneratorService;
         _priceCalculationService = priceCalculationService;
+        _userManager = userManager;
     }
 
     public async Task<IEnumerable<BookingDto>> GetAllBookingsAsync()
@@ -29,6 +34,20 @@ public class BookingService : BaseService<Booking>, IBookingService
         });
         return result;
     }
+
+    public async Task<IEnumerable<BookingDto>> GetBookingsByHotelAsync(int hotelId)
+    {
+        var bookings = await _unitOfWork.BookingRepository.GetBookingsByHotelAsync(hotelId);
+        
+        return bookings.Select(b =>
+        {
+            var dto = _mapper.Map<BookingDto>(b);
+            dto.DurationType = b.DurationType.ToString();
+            dto.UserName = b.User?.UserName;
+            return dto;
+        });
+    }
+
     public async Task<BookingDto> GetBookingAsync(int id)
     {
         var booking = await _unitOfWork.BookingRepository.GetByIdAsync(id);
@@ -47,6 +66,78 @@ public class BookingService : BaseService<Booking>, IBookingService
         var user = await _unitOfWork.UserRepository.GetUserByEmailAsync(email);
         if (user is null)
             throw new NotFoundException("User not found.");
+
+        // Guest is required for reception flow / confirmation screen
+        if (request.Guest == null
+            || string.IsNullOrWhiteSpace(request.Guest.FirstName)
+            || string.IsNullOrWhiteSpace(request.Guest.LastName)
+            || string.IsNullOrWhiteSpace(request.Guest.CIN))
+        {
+            throw new InvalidOperationException("Guest information is required (FirstName, LastName, CIN).");
+        }
+
+        // // recuperer les roles de l'utilisateur
+        // var roles = await _userManager.GetRolesAsync(user);
+        // var isAdminOrManager = roles.Contains("Admin") || roles.Contains("Manager");
+
+        // var staff = await _unitOfWork.StaffRepository.GetByUserIdAsync(user.Id);
+        // int? enforcedHotelId = null;
+
+        // if (!isAdminOrManager && staff !=null && staff.IsActive)
+        // {
+        //     enforcedHotelId = staff.HotelId;
+
+        //     if (request.HotelId != enforcedHotelId)
+        //         throw new InvalidOperationException("You are not allowed to create a booking for another hotel.");
+        // }
+
+        var roles = await _userManager.GetRolesAsync(user);
+var isAdminOrManager = roles.Contains("Admin") || roles.Contains("Manager");
+
+var staff = await _unitOfWork.StaffRepository.GetByUserIdAsync(user.Id);
+int? enforcedHotelId = null;
+
+    if (!isAdminOrManager)
+    {
+        if (staff == null)
+            throw new InvalidOperationException("No staff profile linked to this account.");
+
+        if (!staff.IsActive)
+            throw new InvalidOperationException("Your staff account is inactive.");
+
+        enforcedHotelId = staff.HotelId;
+
+        // if (request.HotelId != enforcedHotelId.Value)
+        //     throw new InvalidOperationException("You are not allowed to create a booking for another hotel.");
+        // Staff ne choisit pas l’hôtel, on force
+        request.HotelId = enforcedHotelId.Value;
+
+    }
+
+
+        var hotelIdToUse = enforcedHotelId ?? request.HotelId;
+
+        var hotel = await _unitOfWork.HotelRepository.GetByIdAsync(hotelIdToUse);
+        if (hotel is null)
+            throw new NotFoundException($"Hotel with ID {hotelIdToUse} not found.");
+
+        // Find or create Guest (by CIN)
+        var guestCin = request.Guest.CIN.Trim();
+        var existingGuest = await _unitOfWork.GuestRepository.GetByCinAsync(guestCin);
+        var guest = existingGuest ?? new Guest
+        {
+            Id = Guid.NewGuid(),
+            FirstName = request.Guest.FirstName.Trim(),
+            LastName = request.Guest.LastName.Trim(),
+            CIN = guestCin,
+            Email = null
+        };
+
+        if (existingGuest == null)
+        {
+            await _unitOfWork.GuestRepository.CreateAsync(guest);
+        }
+
 
         var (checkInUtc, checkOutUtc) = request.DurationType switch
         {
@@ -72,6 +163,24 @@ public class BookingService : BaseService<Booking>, IBookingService
             }
         }
 
+        if (enforcedHotelId.HasValue)
+        {
+            foreach (var roomId in request.RoomIds)
+            {
+                var room = await _unitOfWork.RoomRepository.GetByIdAsync(roomId);
+                if (room is null)
+                    throw new NotFoundException($"Room with ID {roomId} not found.");
+
+                if (room.RoomClass == null)
+                    throw new InvalidOperationException("RoomClass not loaded for room.");
+
+                if (room.RoomClass.HotelId != enforcedHotelId.Value)
+                {
+                    throw new InvalidOperationException($"You are not allowed to book room {room.Number} which belongs to another hotel.");
+                }
+            }
+        }
+
         var totalPrice = await _priceCalculationService.CalculateTotalPriceAsync(request.RoomIds.ToList(),
         checkInUtc,
         checkOutUtc);
@@ -80,22 +189,34 @@ public class BookingService : BaseService<Booking>, IBookingService
         checkInUtc,
         checkOutUtc);
 
+        //var hotelIdToUse = enforcedHotelId ?? request.HotelId;
+        //var hotel = await _unitOfWork.HotelRepository.GetByIdAsync(hotelIdToUse);
+
+        if (hotel is null)
+            throw new NotFoundException($"Hotel with ID {hotelIdToUse} not found.");
+
         var booking = new Booking
-        {
-            UserId = user.Id,
-            User = user,
-            ConfirmationNumber = _confirmationNumberGeneratorService.GenerateConfirmationNumber(),
-            TotalPrice = totalPrice,
-            AfterDiscountedPrice = discountedTotalPrice,
-            BookingDateUtc = DateTime.UtcNow,
-            PaymentMethod = request.PaymentMethod,
-            Hotel = await _unitOfWork.HotelRepository.GetByIdAsync(request.HotelId),
-            CheckInDateUtc = checkInUtc,
-            CheckOutDateUtc = checkOutUtc,
-            DurationType = request.DurationType,
-            Status = BookingStatus.Pending,
-            Rooms = new List<Room> ()
-        };
+    {
+        UserId = user.Id,
+        User = user,
+        GuestId = guest.Id,
+        //Guest = guest,
+        ConfirmationNumber = _confirmationNumberGeneratorService.GenerateConfirmationNumber(),
+        TotalPrice = totalPrice,
+        AfterDiscountedPrice = discountedTotalPrice,
+        BookingDateUtc = DateTime.UtcNow,
+        PaymentMethod = request.PaymentMethod,
+
+        HotelId = hotelIdToUse, // ✅ IMPORTANT
+        //Hotel = hotel,          // ✅ IMPORTANT (déjà chargé au-dessus)
+
+        CheckInDateUtc = checkInUtc,
+        CheckOutDateUtc = checkOutUtc,
+        DurationType = request.DurationType,
+        Status = BookingStatus.Pending,
+        Rooms = new List<Room>()
+    };
+
 
         foreach (var roomId in request.RoomIds)
         {
@@ -111,6 +232,7 @@ public class BookingService : BaseService<Booking>, IBookingService
 
         var result = _mapper.Map<BookingDto>(booking);
         result.DurationType = request.DurationType.ToString();
+        result.UserName = user.UserName;
         return result;
     }
     public async Task UpdateBookingStatusAsync(int bookingId, BookingStatus newStatus)

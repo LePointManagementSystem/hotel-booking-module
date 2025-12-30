@@ -1,4 +1,8 @@
 ﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Mvc;
+using System.Security.Claims;
+using HotelBookingPlatform.Infrastructure;
 
 namespace HotelBookingPlatform.API.Controllers;
 [Route("api/auth")]
@@ -9,13 +13,39 @@ public class UserController : ControllerBase
     private readonly ITokenService _tokenService;
     private readonly IResponseHandler _responseHandler;
     private readonly ILog _logger;
-    public UserController(IUserService userService, ITokenService tokenService, IResponseHandler responseHandler, ILog logger)
+    private readonly UserManager<LocalUser> _userManager;
+    public UserController(IUserService userService, ITokenService tokenService, IResponseHandler responseHandler, ILog logger, UserManager<LocalUser> userManager)
     {
         _userService = userService;
         _tokenService = tokenService;
         _responseHandler = responseHandler;
         _logger = logger;
+        _userManager = userManager;
     }
+
+    [HttpGet("me")]
+[Authorize]
+public async Task<IActionResult> Me()
+{
+    var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+    if (string.IsNullOrWhiteSpace(userId))
+        return Unauthorized();
+
+    var user = await _userManager.FindByIdAsync(userId);
+    if (user == null)
+        return NotFound();
+
+    var roles = await _userManager.GetRolesAsync(user);
+
+    return _responseHandler.Success(new
+    {
+        user.Id,
+        user.Email,
+        user.UserName,
+        Roles = roles
+    }, "Current user profile.");
+}
+
 
     [Authorize(Policy ="AdminPolicy")]
     [HttpPost("register")]

@@ -1,4 +1,6 @@
-﻿namespace HotelBookingPlatform.Domain
+﻿using HotelBookingPlatform.Domain.Abstracts;
+
+namespace HotelBookingPlatform.Domain
 {
     public interface IUnitOfWork<T> where T : class
     {
@@ -13,6 +15,7 @@
         IReviewRepository ReviewRepository { get; }
         IInvoiceRecordRepository InvoiceRecordRepository { get; }
         IAmenityRepository AmenityRepository { get; }
+        IGuestRepository GuestRepository { get; }
         IUserRepository UserRepository { get; }
         IStaffRepository StaffRepository { get; }
         Task<int> SaveChangesAsync();

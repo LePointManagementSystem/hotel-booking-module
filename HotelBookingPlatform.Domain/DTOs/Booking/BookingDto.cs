@@ -3,6 +3,7 @@
     public class BookingDto
     {
         public int BookingId { get; set; }
+        public int HotelId { get; set;}
         public string UserName { get; set; }
         public string ConfirmationNumber { get; set; }
         public decimal TotalPrice { get; set; }
@@ -15,5 +16,11 @@
         public string Status { get; set; }
         public List<string> Numbers { get; set; }
         public string DurationType { get; set; }
+
+        // Guest info (for confirmation screen / reception)
+        public Guid? GuestId { get; set; }
+        public string? GuestFirstName { get; set; }
+        public string? GuestLastName { get; set; }
+        public string? GuestCIN { get; set; }
     }
 }

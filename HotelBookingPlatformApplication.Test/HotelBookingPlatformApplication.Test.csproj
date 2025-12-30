@@ -16,4 +16,10 @@
     </PackageReference>
   </ItemGroup>
 
+  <ItemGroup>
+    <ProjectReference Include=" ..\HotelBookingPlatform.Application\HotelBookingPlatform.Application.csproj" />
+    <ProjectReference Include=" ..\HotelBookingPlatform.Domain\HotelBookingPlatform.Domain.csproj" />
+    <ProjectReference Include=" ..\HotelBookingPlatform.Infrastructure\HotelBookingPlatform.Infrastructure.csproj" />
+</ItemGroup>
+
 </Project>

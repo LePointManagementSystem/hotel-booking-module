@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 using HotelBookingPlatform.Application.Services;
+using HotelBookingPlatform.Infrastructure;
 
 
 namespace HotelBookingPlatform.Application.Services;
@@ -17,13 +18,15 @@ public class TokenService : ITokenService
     private readonly RoleManager<IdentityRole> _roleManager;
     private readonly JWT _jwt;
     private readonly IHttpContextAccessor _httpContextAccessor;
+    private readonly IUnitOfWork<Staff> _unitOfWork;
 
-    public TokenService(UserManager<LocalUser> userManager, RoleManager<IdentityRole> roleManager, IOptions<JWT> jwt, IHttpContextAccessor httpContextAccessor)
+    public TokenService(UserManager<LocalUser> userManager, RoleManager<IdentityRole> roleManager, IOptions<JWT> jwt, IHttpContextAccessor httpContextAccessor,IUnitOfWork<Staff> unitOfWork)
     {
         _userManager = userManager;
         _roleManager = roleManager;
         _jwt = jwt.Value;
         _httpContextAccessor = httpContextAccessor;
+        _unitOfWork = unitOfWork;
 
         // Prevents automatic JWT claim transformations (avoids unexpected claim mismatches)
         JwtSecurityTokenHandler.DefaultInboundClaimTypeMap.Clear();
@@ -41,9 +44,18 @@ public class TokenService : ITokenService
             new(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
             new(JwtRegisteredClaimNames.Email, user.Email),
             new(ClaimTypes.NameIdentifier, user.Id)
+        };
+        // .Union(userClaims)
+        // .Union(roleClaims);
+        claims.AddRange(userClaims);
+        claims.AddRange(roleClaims);
+
+        var staff = await _unitOfWork.StaffRepository.GetByUserIdAsync(user.Id);
+        if (staff != null && staff.IsActive)
+        {
+            claims.Add(new Claim("hotelId", staff.HotelId.ToString()));
+            claims.Add(new Claim("staffId", staff.StaffId.ToString()));
         }
-        .Union(userClaims)
-        .Union(roleClaims);
 
         var symmetricSecurityKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_jwt.Key));
         var signingCredentials = new SigningCredentials(symmetricSecurityKey, SecurityAlgorithms.HmacSha256);

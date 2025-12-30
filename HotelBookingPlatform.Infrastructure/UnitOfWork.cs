@@ -2,6 +2,8 @@
 using ILog = HotelBookingPlatform.Domain.ILogger.ILog;
 using HotelBookingPlatform.Domain.Abstracts;
 using HotelBookingPlatform.Infrastructure.Implementation;
+using HotelBookingPlatform.Domain.Abstracts;
+using HotelBookingPlatform.Infrastructure.Implementation;
 namespace HotelBookingPlatform.Infrastructure
 {
     public class UnitOfWork<T> : IUnitOfWork<T> where T : class
@@ -28,6 +30,7 @@ namespace HotelBookingPlatform.Infrastructure
             UserRepository = new UserRepository(_userManager, _context);
             ImageRepository = new ImageRepository(_context);
             StaffRepository = new StaffRepository(_context);
+            GuestRepository = new GuestRepository(_context);
         }
         public IHotelRepository HotelRepository { get; set; }
         public IBookingRepository BookingRepository { get; set; }
@@ -42,6 +45,7 @@ namespace HotelBookingPlatform.Infrastructure
         public IUserRepository UserRepository { get; set; }
         public IImageRepository ImageRepository { get; set; }
         public IStaffRepository StaffRepository { get; set; }
+        public IGuestRepository GuestRepository { get; set; }
 
         public async Task<int> SaveChangesAsync() => await _context.SaveChangesAsync();
     }
