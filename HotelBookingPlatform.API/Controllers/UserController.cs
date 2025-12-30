@@ -1,4 +1,6 @@
-﻿namespace HotelBookingPlatform.API.Controllers;
+﻿using Microsoft.AspNetCore.Authorization;
+
+namespace HotelBookingPlatform.API.Controllers;
 [Route("api/auth")]
 [ApiController]
 public class UserController : ControllerBase
@@ -15,6 +17,7 @@ public class UserController : ControllerBase
         _logger = logger;
     }
 
+    [Authorize(Policy ="AdminPolicy")]
     [HttpPost("register")]
     [SwaggerOperation(Summary = "Create New Account",
     Description = "This endpoint allows a user to create a new account by providing the necessary details such as username, password, and email.")]

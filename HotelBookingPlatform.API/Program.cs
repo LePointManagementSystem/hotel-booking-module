@@ -2,6 +2,8 @@ using Serilog;
 using AutoMapper;
 using HotelBookingPlatform.API.Profiles;
 using HotelBookingPlatform.Application.Services;
+using HotelBookingPlatform.Infrastructure.Identity;
+
 
 
 
@@ -40,6 +42,9 @@ builder.Services.AddApplicationDependencies()
                 .AddCloudinary(builder.Configuration);
 
 var app = builder.Build();
+
+await IdentitySeeder.SeedAsync(app.Services, app.Configuration);
+
 
 // Configure middleware
 if (app.Environment.IsDevelopment())
