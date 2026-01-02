@@ -6,11 +6,9 @@ using System.Security.Claims;
 
 namespace HotelBookingPlatform.API.Controllers
 {
-    //[Authorize(Roles = "Admin,Manager")]
     [ApiController]
     [Route("api/[controller]")]
     [Authorize]
-
     public class StaffController : ControllerBase
     {
         private readonly IStaffService _staffService;
@@ -22,7 +20,24 @@ namespace HotelBookingPlatform.API.Controllers
             _responseHandler = responseHandler;
         }
 
-    
+        // ✅ Robust user id getter (supporte plusieurs tokens / claim types)
+        private string? GetUserId()
+        {
+            // 1) Standard .NET Identity
+            var id = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (!string.IsNullOrWhiteSpace(id)) return id;
+
+            // 2) JWT common
+            id = User.FindFirstValue("sub");
+            if (!string.IsNullOrWhiteSpace(id)) return id;
+
+            // 3) Some providers put it in Name
+            id = User.FindFirstValue(ClaimTypes.Name);
+            if (!string.IsNullOrWhiteSpace(id)) return id;
+
+            return null;
+        }
+
         [HttpGet]
         [Authorize(Roles = "Admin,Manager")]
         public async Task<IActionResult> GetAll()
@@ -33,16 +48,19 @@ namespace HotelBookingPlatform.API.Controllers
 
         [HttpGet("me")]
         [Authorize(Roles = "Staff,Manager,Admin")]
-        public async Task <IActionResult> GetMyStaffProfile()
+        public async Task<IActionResult> GetMyStaffProfile()
         {
-            var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-            if(string.IsNullOrEmpty(userId))
-                return Unauthorized();
+            var userId = GetUserId();
+            if (string.IsNullOrEmpty(userId))
+                return Unauthorized(new { message = "UserId claim not found in token." });
 
             var staff = await _staffService.GetByUserIdAsync(userId);
+
+            if (staff == null)
+                return NotFound(new { message = "No staff profile linked to this user." });
+
             return _responseHandler.Success(staff, "Staff profile loaded successfully");
         }
-
 
         [HttpPost]
         [Authorize(Roles = "Admin,Manager")]
@@ -50,7 +68,6 @@ namespace HotelBookingPlatform.API.Controllers
         {
             var result = await _staffService.CreateAsync(request);
             return Created("", new { StatusCode = 201, succeeded = true, data = result });
-
         }
 
         [HttpPut("{id}")]
@@ -59,9 +76,7 @@ namespace HotelBookingPlatform.API.Controllers
         {
             var result = await _staffService.UpdateAsync(id, request);
             return Ok(new { StatusCode = 200, succeeded = true, data = result });
-
         }
-
 
         [HttpDelete("{id}")]
         [Authorize(Roles = "Admin,Manager")]
@@ -73,7 +88,7 @@ namespace HotelBookingPlatform.API.Controllers
 
         [HttpPatch("{id}/status")]
         [Authorize(Roles = "Admin,Manager")]
-        public async Task<IActionResult>ToggleStatus(int id, [FromBody] bool IsActive)
+        public async Task<IActionResult> ToggleStatus(int id, [FromBody] bool IsActive)
         {
             var staff = await _staffService.UpdateStatusAsync(id, IsActive);
             return Ok(new { StatusCode = 200, succeeded = true, message = "Staff status updated", data = staff });
