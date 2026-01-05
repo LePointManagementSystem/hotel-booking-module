@@ -1,7 +1,9 @@
 ﻿using System.Runtime.CompilerServices;
 using HotelBookingPlatform.Application.Core.Abstracts.IBookingManagementService;
+using HotelBookingPlatform.Application.Core.Abstracts.NotificationManagementService;
 using HotelBookingPlatform.Domain.Abstracts;
 using HotelBookingPlatform.Domain.Entities;
+using HotelBookingPlatform.Domain.Enums;
 namespace HotelBookingPlatform.Application.Core.Implementations.BookingManagementService;
 
 public class BookingService : BaseService<Booking>, IBookingService
@@ -9,17 +11,20 @@ public class BookingService : BaseService<Booking>, IBookingService
     private readonly IConfirmationNumberGeneratorService _confirmationNumberGeneratorService;
     private readonly UserManager<LocalUser> _userManager;
     private readonly IPriceCalculationService _priceCalculationService;
+    private readonly INotificationService _notificationService;
     public BookingService(
         IUnitOfWork<Booking> unitOfWork,
         IMapper mapper,
         IConfirmationNumberGeneratorService confirmationNumberGeneratorService,
         IPriceCalculationService priceCalculationService,
-        UserManager<LocalUser> userManager)
+        UserManager<LocalUser> userManager,
+        INotificationService notificationService)
         : base(unitOfWork, mapper)
     {
         _confirmationNumberGeneratorService = confirmationNumberGeneratorService;
         _priceCalculationService = priceCalculationService;
         _userManager = userManager;
+        _notificationService = notificationService;
     }
 
     public async Task<IEnumerable<BookingDto>> GetAllBookingsAsync()
@@ -230,6 +235,32 @@ int? enforcedHotelId = null;
         await _unitOfWork.BookingRepository.CreateAsync(booking);
         await _unitOfWork.SaveChangesAsync();
 
+        // 🔔 Notification: booking created/confirmed (hotel scoped)
+        try
+        {
+            var roomNumbers = booking.Rooms?.Select(r => $"#{r.Number}").ToList() ?? new List<string>();
+            var roomsText = roomNumbers.Count > 0 ? string.Join(", ", roomNumbers) : "(rooms)";
+
+            var title = "Booking Confirmed";
+            var message = $"Booking {booking.ConfirmationNumber} for {guest.FirstName} {guest.LastName} - Rooms {roomsText}. " +
+                          $"Check-in: {checkInUtc:u}, Check-out: {checkOutUtc:u} ({request.DurationType}).";
+
+            // We keep EventAtUtc as the booking start time (useful for sorting/"in X minutes" on UI)
+            await _notificationService.CreateHotelNotificationAsync(
+                hotelId: booking.HotelId,
+                type: NotificationType.BookingConfirmed,
+                title: title,
+                message: message,
+                eventAtUtc: checkInUtc,
+                actorUserId: user.Id,
+                recipientUserId: null,
+                bookingId: booking.BookingID);
+        }
+        catch
+        {
+            // Notification must not break booking creation.
+        }
+
         var result = _mapper.Map<BookingDto>(booking);
         result.DurationType = request.DurationType.ToString();
         result.UserName = user.UserName;
@@ -322,6 +353,30 @@ private (DateTime checkInUtc, DateTime checkOutUtc) CalculateOvernightRange(Date
                         LastModifiedUtc = DateTime.UtcNow
                     });
                 }
+            }
+
+            // 🔔 Notification: booking completed (expired)
+            try
+            {
+                var roomNumbers = booking.Rooms?.Select(r => $"#{r.Number}").ToList() ?? new List<string>();
+                var roomsText = roomNumbers.Count > 0 ? string.Join(", ", roomNumbers) : "(rooms)";
+
+                var title = "Booking Completed";
+                var message = $"Booking {booking.ConfirmationNumber} completed (time up). Rooms {roomsText}.";
+
+                await _notificationService.CreateHotelNotificationAsync(
+                    hotelId: booking.HotelId,
+                    type: NotificationType.BookingCompleted,
+                    title: title,
+                    message: message,
+                    eventAtUtc: booking.CheckOutDateUtc,
+                    actorUserId: null,
+                    recipientUserId: null,
+                    bookingId: booking.BookingID);
+            }
+            catch
+            {
+                // ignore
             }
         }
     }

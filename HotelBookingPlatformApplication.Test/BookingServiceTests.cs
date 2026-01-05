@@ -11,6 +11,11 @@ using HotelBookingPlatform.Domain.Entities;
 using HotelBookingPlatform.Domain.Enums;
 using HotelBookingPlatform.Application.Core.Abstracts.IBookingManagementService;
 using AutoMapper;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
+using HotelBookingPlatform.Application.Core.Abstracts.NotificationManagementService;
+
 
 namespace HotelBookingPlatformApplication.Test
 {
@@ -22,11 +27,57 @@ namespace HotelBookingPlatformApplication.Test
         {
             var confirmationMock = new Mock<IConfirmationNumberGeneratorService>();
             confirmationMock.Setup(x => x.GenerateConfirmationNumber()).Returns("CONF123");
-            var priceCalcMock = new Mock<IPriceCalculationService>();
-            priceCalcMock.Setup(x => x.CalculateTotalPriceAsync(It.IsAny<List<int>>(), It.IsAny<DateTime>(), It.IsAny<DateTime>())).ReturnsAsync(0m);
-            priceCalcMock.Setup(x => x.CalculateDiscountedPriceAsync(It.IsAny<List<int>>(), It.IsAny<DateTime>(), It.IsAny<DateTime>())).ReturnsAsync(0m);
 
-            return new BookingService(mockUow.Object, mapper?.Object ?? new Mock<IMapper>().Object, confirmationMock.Object, priceCalcMock.Object);
+            var priceCalcMock = new Mock<IPriceCalculationService>();
+            priceCalcMock
+                .Setup(x => x.CalculateTotalPriceAsync(It.IsAny<List<int>>(), It.IsAny<DateTime>(), It.IsAny<DateTime>()))
+                .ReturnsAsync(0m);
+
+            priceCalcMock
+                .Setup(x => x.CalculateDiscountedPriceAsync(It.IsAny<List<int>>(), It.IsAny<DateTime>(), It.IsAny<DateTime>()))
+                .ReturnsAsync(0m);
+
+            var userManager = CreateUserManagerMock();
+
+            var notificationServiceMock = new Mock<INotificationService>();
+
+return new BookingService(
+    mockUow.Object,
+    mapper?.Object ?? new Mock<IMapper>().Object,
+    confirmationMock.Object,
+    priceCalcMock.Object,
+    userManager,
+    notificationServiceMock.Object
+);
+        }
+
+        private static UserManager<LocalUser> CreateUserManagerMock()
+        {
+            var store = new Mock<IUserStore<LocalUser>>();
+
+            var options = new Mock<IOptions<IdentityOptions>>();
+            options.Setup(o => o.Value).Returns(new IdentityOptions());
+
+            var passwordHasher = new Mock<IPasswordHasher<LocalUser>>();
+            var userValidators = new List<IUserValidator<LocalUser>> { new Mock<IUserValidator<LocalUser>>().Object };
+            var pwdValidators = new List<IPasswordValidator<LocalUser>> { new Mock<IPasswordValidator<LocalUser>>().Object };
+
+            var lookupNormalizer = new Mock<ILookupNormalizer>();
+            var errorDescriber = new IdentityErrorDescriber();
+            var services = new Mock<IServiceProvider>();
+            var logger = new Mock<ILogger<UserManager<LocalUser>>>();
+
+            return new UserManager<LocalUser>(
+                store.Object,
+                options.Object,
+                passwordHasher.Object,
+                userValidators,
+                pwdValidators,
+                lookupNormalizer.Object,
+                errorDescriber,
+                services.Object,
+                logger.Object
+            );
         }
 
         [Fact]
@@ -36,7 +87,10 @@ namespace HotelBookingPlatformApplication.Test
             var mockBookingRepo = new Mock<IBookingRepository>();
             var mockRoomRepo = new Mock<IRoomRepository>();
 
-            mockBookingRepo.Setup(x => x.GetExpiredBookingsWithRoomsAsync(It.IsAny<DateTime>())).ReturnsAsync(new List<Booking>());
+            mockBookingRepo
+                .Setup(x => x.GetExpiredBookingsWithRoomsAsync(It.IsAny<DateTime>()))
+                .ReturnsAsync(new List<Booking>());
+
             mockUow.SetupGet(u => u.BookingRepository).Returns(mockBookingRepo.Object);
             mockUow.SetupGet(u => u.RoomRepository).Returns(mockRoomRepo.Object);
 
@@ -66,9 +120,18 @@ namespace HotelBookingPlatformApplication.Test
                 Rooms = new List<Room> { room }
             };
 
-            mockBookingRepo.Setup(x => x.GetExpiredBookingsWithRoomsAsync(It.IsAny<DateTime>())).ReturnsAsync(new List<Booking> { booking });
-            mockBookingRepo.Setup(x => x.UpdateAsync(booking.BookingID, booking)).ReturnsAsync(booking);
-            mockRoomRepo.Setup(x => x.UpdateAsync(room.RoomID, room)).ReturnsAsync(room);
+            mockBookingRepo
+                .Setup(x => x.GetExpiredBookingsWithRoomsAsync(It.IsAny<DateTime>()))
+                .ReturnsAsync(new List<Booking> { booking });
+
+            mockBookingRepo
+                .Setup(x => x.UpdateAsync(booking.BookingID, booking))
+                .ReturnsAsync(booking);
+
+            mockRoomRepo
+                .Setup(x => x.UpdateAsync(room.RoomID, room))
+                .ReturnsAsync(room);
+
             mockUow.SetupGet(u => u.BookingRepository).Returns(mockBookingRepo.Object);
             mockUow.SetupGet(u => u.RoomRepository).Returns(mockRoomRepo.Object);
             mockUow.Setup(u => u.SaveChangesAsync()).ReturnsAsync(1);
@@ -80,6 +143,7 @@ namespace HotelBookingPlatformApplication.Test
             result.Should().HaveCount(1);
             booking.Status.Should().Be(BookingStatus.Completed);
             room.IsAvailable.Should().BeTrue();
+
             mockBookingRepo.Verify(b => b.UpdateAsync(booking.BookingID, booking), Times.Once);
             mockRoomRepo.Verify(r => r.UpdateAsync(room.RoomID, room), Times.Once);
             mockUow.Verify(u => u.SaveChangesAsync(), Times.Once);
@@ -101,7 +165,10 @@ namespace HotelBookingPlatformApplication.Test
                 Rooms = new List<Room> { room }
             };
 
-            mockBookingRepo.Setup(x => x.GetExpiredBookingsWithRoomsAsync(It.IsAny<DateTime>())).ReturnsAsync(new List<Booking> { booking });
+            mockBookingRepo
+                .Setup(x => x.GetExpiredBookingsWithRoomsAsync(It.IsAny<DateTime>()))
+                .ReturnsAsync(new List<Booking> { booking });
+
             mockUow.SetupGet(u => u.BookingRepository).Returns(mockBookingRepo.Object);
             mockUow.SetupGet(u => u.RoomRepository).Returns(mockRoomRepo.Object);
 

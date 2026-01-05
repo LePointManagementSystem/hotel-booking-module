@@ -3,6 +3,7 @@ using System;
 using HotelBookingPlatform.Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -11,9 +12,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace HotelBookingPlatform.Infrastructure.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260102173844_AddNotifications")]
+    partial class AddNotifications
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -422,73 +425,6 @@ namespace HotelBookingPlatform.Infrastructure.Migrations
                         .HasDatabaseName("UserNameIndex");
 
                     b.ToTable("AspNetUsers", (string)null);
-                });
-
-            modelBuilder.Entity("HotelBookingPlatform.Domain.Entities.Notification", b =>
-                {
-                    b.Property<int>("NotificationId")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("integer");
-
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("NotificationId"));
-
-                    b.Property<string>("ActorUserId")
-                        .HasColumnType("text");
-
-                    b.Property<int?>("BookingId")
-                        .HasColumnType("integer");
-
-                    b.Property<DateTime>("CreatedAtUtc")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<DateTime?>("EventAtUtc")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<int>("HotelId")
-                        .HasColumnType("integer");
-
-                    b.Property<bool>("IsRead")
-                        .HasColumnType("boolean");
-
-                    b.Property<string>("Message")
-                        .IsRequired()
-                        .HasMaxLength(2000)
-                        .HasColumnType("character varying(2000)");
-
-                    b.Property<DateTime?>("ReadAtUtc")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<string>("RecipientUserId")
-                        .HasColumnType("text");
-
-                    b.Property<int?>("RoomId")
-                        .HasColumnType("integer");
-
-                    b.Property<string>("Title")
-                        .IsRequired()
-                        .HasMaxLength(200)
-                        .HasColumnType("character varying(200)");
-
-                    b.Property<int>("Type")
-                        .HasColumnType("integer");
-
-                    b.HasKey("NotificationId");
-
-                    b.HasIndex("ActorUserId");
-
-                    b.HasIndex("BookingId");
-
-                    b.HasIndex("CreatedAtUtc");
-
-                    b.HasIndex("HotelId");
-
-                    b.HasIndex("RecipientUserId");
-
-                    b.HasIndex("RoomId");
-
-                    b.HasIndex("HotelId", "IsRead");
-
-                    b.ToTable("Notifications", (string)null);
                 });
 
             modelBuilder.Entity("HotelBookingPlatform.Domain.Entities.Owner", b =>
@@ -972,39 +908,6 @@ namespace HotelBookingPlatform.Infrastructure.Migrations
                         });
 
                     b.Navigation("RefreshTokens");
-                });
-
-            modelBuilder.Entity("HotelBookingPlatform.Domain.Entities.Notification", b =>
-                {
-                    b.HasOne("HotelBookingPlatform.Domain.Entities.LocalUser", "ActorUser")
-                        .WithMany()
-                        .HasForeignKey("ActorUserId");
-
-                    b.HasOne("HotelBookingPlatform.Domain.Entities.Booking", null)
-                        .WithMany()
-                        .HasForeignKey("BookingId")
-                        .OnDelete(DeleteBehavior.SetNull);
-
-                    b.HasOne("HotelBookingPlatform.Domain.Entities.Hotel", "Hotel")
-                        .WithMany()
-                        .HasForeignKey("HotelId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("HotelBookingPlatform.Domain.Entities.LocalUser", "RecipientUser")
-                        .WithMany()
-                        .HasForeignKey("RecipientUserId");
-
-                    b.HasOne("HotelBookingPlatform.Domain.Entities.Room", null)
-                        .WithMany()
-                        .HasForeignKey("RoomId")
-                        .OnDelete(DeleteBehavior.SetNull);
-
-                    b.Navigation("ActorUser");
-
-                    b.Navigation("Hotel");
-
-                    b.Navigation("RecipientUser");
                 });
 
             modelBuilder.Entity("HotelBookingPlatform.Domain.Entities.Review", b =>

@@ -39,12 +39,24 @@ public class TokenService : ITokenService
         var roleClaims = roles.Select(role => new Claim(ClaimTypes.Role, role)).ToList();
 
         var claims = new List<Claim>
-        {
-            new(JwtRegisteredClaimNames.Sub, user.UserName),
-            new(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
-            new(JwtRegisteredClaimNames.Email, user.Email),
-            new(ClaimTypes.NameIdentifier, user.Id)
-        };
+    {
+        // ✅ sub = user.Id (standard JWT, plus fiable côté API/front)
+        new(JwtRegisteredClaimNames.Sub, user.Id),
+
+        // ✅ name / unique_name pour Identity.Name et compatibilité
+        new(ClaimTypes.Name, user.UserName ?? ""),
+        new(JwtRegisteredClaimNames.UniqueName, user.UserName ?? ""),
+
+        new(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
+
+        // ✅ email en double format (certaines libs lisent ClaimTypes.Email)
+        new(JwtRegisteredClaimNames.Email, user.Email ?? ""),
+        new(ClaimTypes.Email, user.Email ?? ""),
+
+        // ✅ le plus important pour tes controllers: l'Id
+        new(ClaimTypes.NameIdentifier, user.Id),
+    };
+
         // .Union(userClaims)
         // .Union(roleClaims);
         claims.AddRange(userClaims);
