@@ -1,2 +1,7 @@
 HotelBookingPlatform.API/Production_Env_Log/
 **/logs*/
+
+# Logs
+HotelBookingPlatform.API/Production_Env_Log/
+*.log
+logs*.txt
