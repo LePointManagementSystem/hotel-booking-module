@@ -13,7 +13,10 @@ public class BookingMappingProfile :Profile
         .ForMember(dest => dest.GuestId, opt => opt.MapFrom(src => src.GuestId))
         .ForMember(dest => dest.GuestFirstName, opt => opt.MapFrom(src => src.Guest != null ? src.Guest.FirstName : null))
         .ForMember(dest => dest.GuestLastName, opt => opt.MapFrom(src => src.Guest != null ? src.Guest.LastName : null))
-        .ForMember(dest => dest.GuestCIN, opt => opt.MapFrom(src => src.Guest != null ? src.Guest.CIN : null));
+        .ForMember(dest => dest.GuestCIN, opt => opt.MapFrom(src => src.Guest != null ? src.Guest.CIN : null))
+        .ForMember(dest => dest.CancellationReason, opt => opt.MapFrom(src => src.CancellationReason))
+        .ForMember(dest => dest.CancelledAtUtc, opt => opt.MapFrom(src => src.CancelledAtUtc))
+        .ForMember(dest => dest.CancelledByUserId, opt => opt.MapFrom(src => src.CancelledByUserId));
 
 
         CreateMap<BookingCreateRequest, Booking>()

@@ -165,7 +165,8 @@ public class BookingController : ControllerBase
 
     // }
 
-    [HttpPut("{id}/Update_status")]
+
+[HttpPut("{id}/Update_status")]
 [Authorize(Roles = "User,Admin,Manager,Staff")]
 [SwaggerOperation(Summary = "Update the status of a booking.")]
 public async Task<IActionResult> UpdateBookingStatus(int id, [FromBody] BookingStatus newStatus)
@@ -182,9 +183,16 @@ public async Task<IActionResult> UpdateBookingStatus(int id, [FromBody] BookingS
     if (User.IsInRole("Staff") && scopedHotelId.HasValue && booking.HotelId != scopedHotelId.Value)
         return Forbid("You are not allowed to update a booking from another hotel.");
 
+    // NOTE: Cancellation is handled by the dedicated /cancel endpoint
+    // because it requires a reason and stores audit fields.
+    if (newStatus == BookingStatus.Cancelled)
+    {
+        _log.Log($"UpdateBookingStatus: Cancelled is not allowed via Update_status for booking {id}. Use /api/Booking/{id}/cancel.", "Warning");
+        return BadRequest("To cancel a booking, use PUT /api/Booking/{id}/cancel with a cancellation reason.");
+    }
+
     if (newStatus != BookingStatus.Completed &&
-        newStatus != BookingStatus.Confirmed &&
-        newStatus != BookingStatus.Cancelled)
+        newStatus != BookingStatus.Confirmed)
     {
         _log.Log($"UpdateBookingStatus: Invalid status '{newStatus}'.", "Warning");
         return BadRequest("Invalid status update request.");
@@ -199,6 +207,33 @@ public async Task<IActionResult> UpdateBookingStatus(int id, [FromBody] BookingS
     _log.Log($"UpdateBookingStatus: Booking {id} status updated to '{newStatus}' by {userName} ({role}).", "info");
 
     return _responseHandler.Success($"Booking status updated to {newStatus} successfully");
+}
+
+public sealed class CancelBookingRequest
+{
+    public string Reason { get; set; } = string.Empty;
+}
+
+[HttpPut("{id}/cancel")]
+[Authorize(Roles = "User,Admin,Manager,Staff")]
+[SwaggerOperation(
+    Summary = "Cancel booking with reason",
+    Description = "Sets booking status to Cancelled and stores a cancellation reason (audit). Use this instead of Update_status.",
+    Tags = new[] { "Booking" })]
+public async Task<IActionResult> CancelBooking(int id, [FromBody] CancelBookingRequest request)
+{
+    if (id <= 0) return BadRequest("Invalid booking id.");
+    if (request == null) return BadRequest("Request body is required.");
+    if (string.IsNullOrWhiteSpace(request.Reason)) return BadRequest("Reason is required.");
+
+    var cancelledByUserId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+    await _bookingService.CancelBookingAsync(id, request.Reason, cancelledByUserId);
+
+    var userName = User.Identity?.Name;
+    var role = User.FindFirst(ClaimTypes.Role)?.Value;
+    _log.Log($"CancelBooking: Booking {id} cancelled by {userName} ({role}). Reason: {request.Reason}", "info");
+
+    return _responseHandler.Success("Booking cancelled successfully");
 }
 
 
