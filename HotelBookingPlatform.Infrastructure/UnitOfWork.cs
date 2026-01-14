@@ -34,6 +34,7 @@ namespace HotelBookingPlatform.Infrastructure
             GuestRepository = new GuestRepository(_context);
 
             NotificationRepository = new NotificationRepository(_context); // ✅ ok
+            CashTransactionRepository = new CashTransactionRepository(_context);
         }
 
         public IHotelRepository HotelRepository { get; }
@@ -52,6 +53,7 @@ namespace HotelBookingPlatform.Infrastructure
         public IGuestRepository GuestRepository { get; }
 
         public INotificationRepository NotificationRepository { get; }
+        public ICashTransactionRepository CashTransactionRepository { get; }
 
         public async Task<int> SaveChangesAsync() => await _context.SaveChangesAsync();
     }

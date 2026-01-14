@@ -22,5 +22,10 @@
         public string? GuestFirstName { get; set; }
         public string? GuestLastName { get; set; }
         public string? GuestCIN { get; set; }
+
+        public string? CancellationReason { get; set; }
+        public DateTime? CancelledAtUtc { get; set; }
+        public string? CancelledByUserId { get; set; }
+
     }
 }

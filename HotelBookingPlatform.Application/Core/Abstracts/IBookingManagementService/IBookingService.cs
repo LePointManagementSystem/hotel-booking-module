@@ -7,6 +7,12 @@ public interface IBookingService
     Task<BookingDto> GetBookingAsync(int id);
     Task<BookingDto> CreateBookingAsync(BookingCreateRequest request, string userId);
     Task UpdateBookingStatusAsync(int bookingId, BookingStatus newStatus);
+
+    // Dedicated cancellation with audit fields.
+    // Reason is required by the API endpoint.
+    Task CancelBookingAsync(int bookingId, string reason, string? cancelledByUserId);
+
     Task<List<object>> ReleaseExpiredBookingsAsync();
 
+    
 }

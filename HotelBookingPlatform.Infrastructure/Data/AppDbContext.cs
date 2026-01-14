@@ -57,6 +57,7 @@
             modelBuilder.ApplyConfiguration(new ReviewConfiguration());
             modelBuilder.ApplyConfiguration(new StaffConfiguration());
             modelBuilder.ApplyConfiguration(new NotificationConfiguration());
+            modelBuilder.ApplyConfiguration(new CashTransactionConfiguration());
         }
         public DbSet<Hotel> Hotels { get; set; }
         public DbSet<Owner> Owners { get; set; }
@@ -73,5 +74,6 @@
         public DbSet<Image> Images { get; set; }
         public DbSet<Staff> Staff { get; set; }
         public DbSet<Notification> Notifications { get; set; }
+        public DbSet<CashTransaction> CashTransactions { get; set; }
     }
 }

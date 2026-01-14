@@ -16,6 +16,12 @@ namespace HotelBookingPlatform.Domain.Entities
         public decimal TotalPrice { get; set; }
         public decimal AfterDiscountedPrice { get; set; }
         public DateTime BookingDateUtc { get; set; }
+
+        // ✅ Cancellation audit (optional)
+        // Used by the dedicated cancel endpoint: PUT /api/Booking/{id}/cancel
+        public string? CancellationReason { get; set; }
+        public string? CancelledByUserId { get; set; }
+        public DateTime? CancelledAtUtc { get; set; }
         public PaymentMethod PaymentMethod { get; set; }
         public int HotelId { get; set; }
         public Hotel Hotel { get; set; }

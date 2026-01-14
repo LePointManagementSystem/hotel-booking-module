@@ -307,6 +307,39 @@ int? enforcedHotelId = null;
         }
 
 
+public async Task CancelBookingAsync(int bookingId, string reason, string? cancelledByUserId)
+	{
+	    if (string.IsNullOrWhiteSpace(reason))
+	        throw new BadRequestException("Cancellation reason is required.");
+
+	    var booking = await _unitOfWork.BookingRepository.GetByIdAsync(bookingId);
+	    if (booking is null)
+	        throw new NotFoundException($"Booking with ID {bookingId} not found.");
+
+	    // If already done, do nothing / avoid changing history
+	    if (booking.Status == BookingStatus.Cancelled || booking.Status == BookingStatus.Completed)
+	        return;
+
+	    booking.Status = BookingStatus.Cancelled;
+	    booking.CancellationReason = reason.Trim();
+	    booking.CancelledByUserId = cancelledByUserId;
+	    booking.CancelledAtUtc = DateTime.UtcNow;
+
+	    // release rooms
+	    if (booking.Rooms != null && booking.Rooms.Any())
+	    {
+	        foreach (var room in booking.Rooms)
+	        {
+	            room.IsAvailable = true;
+	            await _unitOfWork.RoomRepository.UpdateAsync(room.RoomID, room);
+	        }
+	    }
+
+	    await _unitOfWork.BookingRepository.UpdateAsync(booking.BookingID, booking);
+	    await _unitOfWork.SaveChangesAsync();
+	}
+
+
 private (DateTime checkInUtc, DateTime checkOutUtc) CalculateOvernightRange(DateTime requestCheckInUtc)
     {
         var local = requestCheckInUtc.ToLocalTime();

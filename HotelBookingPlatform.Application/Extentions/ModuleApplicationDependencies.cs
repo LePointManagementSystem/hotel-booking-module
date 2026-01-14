@@ -9,8 +9,10 @@ using HotelBookingPlatform.Application.Core.Abstracts.StaffManagementService;
 using HotelBookingPlatform.Application.Core.Implementations.StaffManagementService;
 using HotelBookingPlatform.Application.Core.Abstracts.NotificationManagementService;
 using HotelBookingPlatform.Application.Core.Implementations.NotificationManagementService;
-
-
+using HotelBookingPlatform.Application.Core.Abstracts.CashManagementService;
+using HotelBookingPlatform.Application.Core.Implementations.CashManagementService;
+using HotelBookingPlatform.Application.Core.Abstracts.ReportsManagementService;
+using HotelBookingPlatform.Application.Core.Implementations.ReportsManagementService;
 
 using System.Reflection;
 using FluentValidation;
@@ -51,6 +53,8 @@ public static class ModuleApplicationDependencies
         services.AddScoped<IHotelRoomService, HotelRoomService>();
         services.AddScoped<IStaffService, StaffService>();
         services.AddScoped<INotificationService, NotificationService>();
+        services.AddScoped<ICashTransactionService, CashTransactionService>();
+        services.AddScoped<IReportsService, ReportsService>();
 
 
 
