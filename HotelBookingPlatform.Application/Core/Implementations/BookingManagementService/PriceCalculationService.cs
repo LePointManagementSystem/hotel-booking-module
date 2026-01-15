@@ -13,12 +13,24 @@ public class PriceCalculationService : IPriceCalculationService
         decimal totalPrice = 0m;
         var duration = GetBookingDuration(checkInDate, checkOutDate);
 
+        // For multi-day stays, price is calculated per night (Overnight) times number of nights.
+        var totalDays = (checkOutDate - checkInDate).TotalDays;
+        var nights = totalDays > 0 ? (int)Math.Ceiling(totalDays) : 0;
+
         foreach (var roomId in roomIds)
         {
             var room = await _unitOfWork.RoomRepository.GetByIdAsync(roomId);
             if (room is not null)
             {
-                totalPrice += RoomPricing.GetPrice(room.RoomClass.RoomType, duration);
+                if (duration == BookingDurationType.Stay)
+                {
+                    var nightly = RoomPricing.GetPrice(room.RoomClass.RoomType, BookingDurationType.Overnight);
+                    totalPrice += nightly * Math.Max(1, nights);
+                }
+                else
+                {
+                    totalPrice += RoomPricing.GetPrice(room.RoomClass.RoomType, duration);
+                }
             }
         }
 
@@ -30,12 +42,25 @@ public class PriceCalculationService : IPriceCalculationService
         decimal discountedTotalPrice = 0m;
         var duration = GetBookingDuration(checkInDate, checkOutDate);
 
+        var totalDays = (checkOutDate - checkInDate).TotalDays;
+        var nights = totalDays > 0 ? (int)Math.Ceiling(totalDays) : 0;
+
         foreach (var roomId in roomIds)
         {
             var room = await _unitOfWork.RoomRepository.GetByIdAsync(roomId);
             if (room is not null)
             {
-                decimal basePrice = RoomPricing.GetPrice(room.RoomClass.RoomType, duration);
+                decimal basePrice;
+
+                if (duration == BookingDurationType.Stay)
+                {
+                    var nightly = RoomPricing.GetPrice(room.RoomClass.RoomType, BookingDurationType.Overnight);
+                    basePrice = nightly * Math.Max(1, nights);
+                }
+                else
+                {
+                    basePrice = RoomPricing.GetPrice(room.RoomClass.RoomType, duration);
+                }
                 var discount = await _unitOfWork.DiscountRepository.GetActiveDiscountForRoomAsync(roomId, checkInDate, checkOutDate);
                 if (discount != null && discount.IsActive)
                 {
@@ -55,7 +80,9 @@ public class PriceCalculationService : IPriceCalculationService
         {
             <= 2 => BookingDurationType.Hours2,
             <= 4 => BookingDurationType.Hours4,
-            _ => BookingDurationType.Overnight
+            // Up to 8 hours is treated as an "Overnight" price bucket (configurable later)
+            <= 8 => BookingDurationType.Overnight,
+            _ => BookingDurationType.Stay
         };
     }
 }

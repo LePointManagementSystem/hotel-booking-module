@@ -144,18 +144,32 @@ int? enforcedHotelId = null;
         }
 
 
+        // Normalize check-in / check-out based on duration type.
+        // NOTE: Frontend sends an enum number (see BookingDurationType). We support:
+        // - Hours1..Hours8  => checkOut = checkIn + N hours
+        // - Hours2 / Hours4 => same behavior as before
+        // - Overnight       => uses hotel overnight range helper
+        // - Stay            => uses request.CheckOutDateUtc (multi-day)
+
         var (checkInUtc, checkOutUtc) = request.DurationType switch
         {
-            BookingDurationType.Hours2 => (request.CheckInDateUtc, request.CheckInDateUtc.AddHours(2)),
-
-            BookingDurationType.Hours4 => (request.CheckInDateUtc, request.CheckInDateUtc.AddHours(4)),
-
             BookingDurationType.Overnight => CalculateOvernightRange(request.CheckInDateUtc),
 
-            _ => throw new ArgumentOutOfRangeException(nameof(request.DurationType),
-            request.DurationType,
-            "Unsupported booking duration type.")
+            BookingDurationType.Stay => (request.CheckInDateUtc, request.CheckOutDateUtc),
+
+            _ => (request.CheckInDateUtc, request.CheckInDateUtc.AddHours(GetDurationHours(request.DurationType)))
         };
+
+        if (checkOutUtc <= checkInUtc)
+            throw new InvalidOperationException("Check-out must be after check-in.");
+
+        // For Stay, enforce at least 1 night (24h) to avoid accidental hourly payloads.
+        if (request.DurationType == BookingDurationType.Stay)
+        {
+            var totalHours = (checkOutUtc - checkInUtc).TotalHours;
+            if (totalHours < 24)
+                throw new InvalidOperationException("Stay duration must be at least 24 hours.");
+        }
 
         foreach (var roomId in request.RoomIds)
         {
@@ -421,6 +435,22 @@ private (DateTime checkInUtc, DateTime checkOutUtc) CalculateOvernightRange(Date
     
     return releasedData;
 }
+
+    private static int GetDurationHours(BookingDurationType durationType)
+    {
+        return durationType switch
+        {
+            BookingDurationType.Hours1 => 1,
+            BookingDurationType.Hours2 => 2,
+            BookingDurationType.Hours3 => 3,
+            BookingDurationType.Hours4 => 4,
+            BookingDurationType.Hours5 => 5,
+            BookingDurationType.Hours6 => 6,
+            BookingDurationType.Hours7 => 7,
+            BookingDurationType.Hours8 => 8,
+            _ => throw new ArgumentOutOfRangeException(nameof(durationType), durationType, "Unsupported booking duration type.")
+        };
+    }
 
 
 
