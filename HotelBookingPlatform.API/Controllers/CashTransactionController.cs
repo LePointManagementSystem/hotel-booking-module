@@ -16,7 +16,10 @@ public class CashTransactionsController : ControllerBase
     private readonly IResponseHandler _responseHandler;
     private readonly ILog _log;
 
-    public CashTransactionsController(ICashTransactionService cashService, IResponseHandler responseHandler, ILog log)
+    public CashTransactionsController(
+        ICashTransactionService cashService,
+        IResponseHandler responseHandler,
+        ILog log)
     {
         _cashService = cashService;
         _responseHandler = responseHandler;
@@ -41,8 +44,15 @@ public class CashTransactionsController : ControllerBase
         var scopedHotelId = GetScopedHotelId();
         var isStaff = User.IsInRole("Staff");
 
+        // ✅ Backward compatible: if client didn't send Shift, service should default to Morning.
+        // (If your DTO already has Shift with default, this is fine.)
         var dto = await _cashService.CreateAsync(request, actorUserId, scopedHotelId, isStaff);
-        _log.Log($"CashTransactions.Create: {dto.Type} {dto.Amount} {dto.Currency} for hotel {dto.HotelId} by {actorUserId}", "info");
+
+        _log.Log(
+            $"CashTransactions.Create: {dto.Type} {dto.Amount} {dto.Currency} shift={dto.Shift} hotel={dto.HotelId} by={actorUserId}",
+            "info"
+        );
+
         return _responseHandler.Success(dto, "Cash transaction created successfully.");
     }
 
@@ -58,6 +68,7 @@ public class CashTransactionsController : ControllerBase
         [FromQuery] DateTime? toUtc,
         [FromQuery] CashTransactionType? type,
         [FromQuery] CurrencyCode? currency,
+        [FromQuery] CashShift? shift,              // ✅ NEW FILTER
         [FromQuery] int page = 1,
         [FromQuery] int pageSize = 100)
     {
@@ -70,10 +81,12 @@ public class CashTransactionsController : ControllerBase
             toUtc,
             type,
             currency,
+            shift,        // ✅ pass shift to service
             page,
             pageSize,
             scopedHotelId,
-            isStaff);
+            isStaff
+        );
 
         return _responseHandler.Success(list, "Cash transactions retrieved successfully.");
     }
