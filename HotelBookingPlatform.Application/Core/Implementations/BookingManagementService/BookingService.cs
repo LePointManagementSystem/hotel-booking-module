@@ -351,6 +351,36 @@ public async Task CancelBookingAsync(int bookingId, string reason, string? cance
 
 	    await _unitOfWork.BookingRepository.UpdateAsync(booking.BookingID, booking);
 	    await _unitOfWork.SaveChangesAsync();
+
+        // Create notification for cancellation (do not block the cancellation flow if this fails)
+        try
+        {
+            var roomNumbers = booking.Rooms != null && booking.Rooms.Any()
+                ? string.Join(", ", booking.Rooms.Select(r => r.Number))
+                : "N/A";
+
+            var title = "Booking cancelled";
+            var message = 
+                $"Booking #{booking.BookingID} was cancelled." +
+                $" Rooms: {roomNumbers}." +
+                $" Reason: {reason.Trim()}";
+
+            await _notificationService.CreateHotelNotificationAsync(
+                hotelId: booking.HotelId,
+                type: NotificationType.BookingCancelled,
+                title: title,
+                message: message,
+                eventAtUtc: DateTime.UtcNow,
+                actorUserId: cancelledByUserId ?? "system",
+                recipientUserId: null,
+                bookingId: booking.BookingID,
+                roomId: null
+            );
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Failed to create cancellation notification for booking {booking.BookingID}: {ex.Message}", "warn");
+        }
 	}
 
 
