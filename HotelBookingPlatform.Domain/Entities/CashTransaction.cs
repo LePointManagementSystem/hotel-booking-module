@@ -40,4 +40,9 @@ public class CashTransaction
     public string? Reference { get; set; }
 
     public DateTime CreatedAtUtc { get; set; } = DateTime.UtcNow;
+
+    public CashShift Shift { get; set; } = CashShift.Morning;
+
+    public int? CashSessionId { get; set; }
+    public CashSession? CashSession { get; set; }
 }

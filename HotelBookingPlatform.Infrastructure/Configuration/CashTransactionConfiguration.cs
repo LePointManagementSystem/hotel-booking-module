@@ -20,6 +20,9 @@ public class CashTransactionConfiguration : IEntityTypeConfiguration<CashTransac
             .HasMaxLength(500)
             .IsRequired();
 
+        builder.Property(x => x.Shift)
+            .IsRequired();
+
         builder.Property(x => x.Category)
             .HasMaxLength(100);
 

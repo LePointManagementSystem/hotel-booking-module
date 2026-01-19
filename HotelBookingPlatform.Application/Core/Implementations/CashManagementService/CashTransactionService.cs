@@ -15,29 +15,44 @@ public class CashTransactionService : ICashTransactionService
         _unitOfWork = unitOfWork;
     }
 
-    public async Task<CashTransactionDto> CreateAsync(CreateCashTransactionRequest request, string actorUserId, int? scopedHotelId, bool isStaff)
+    public async Task<CashTransactionDto> CreateAsync(
+        CreateCashTransactionRequest request,
+        string actorUserId,
+        int? scopedHotelId,
+        bool isStaff)
     {
         if (request is null) throw new ArgumentNullException(nameof(request));
         if (string.IsNullOrWhiteSpace(actorUserId)) throw new ArgumentException("actorUserId is required", nameof(actorUserId));
-
-        // Staff users are scoped to one hotel.
-        var hotelId = isStaff ? (scopedHotelId ?? 0) : request.HotelId;
-        if (hotelId <= 0) throw new InvalidOperationException("HotelId is required.");
-        if (isStaff && scopedHotelId.HasValue && request.HotelId != 0 && request.HotelId != scopedHotelId.Value)
-            throw new UnauthorizedAccessException("You are not allowed to create cash transactions for another hotel.");
-
         if (request.Amount <= 0) throw new InvalidOperationException("Amount must be greater than 0.");
 
         var note = (request.Note ?? string.Empty).Trim();
         if (request.Type == CashTransactionType.Out && string.IsNullOrWhiteSpace(note))
             throw new InvalidOperationException("Note is required for cash OUT transactions.");
 
+        // Phase 2: require an open session
+        if (!request.CashSessionId.HasValue || request.CashSessionId.Value <= 0)
+            throw new InvalidOperationException("CashSessionId is required. Open a shift first.");
+
+        var session = await _unitOfWork.CashSessionRepository.GetByIdAsync(request.CashSessionId.Value);
+        if (session == null) throw new InvalidOperationException("Cash session not found.");
+        if (session.IsClosed) throw new InvalidOperationException("This shift is closed. Open a new shift.");
+
+        // Enforce staff scope by hotelId from token
+        if (isStaff)
+        {
+            if (!scopedHotelId.HasValue) throw new UnauthorizedAccessException("Staff hotel scope is missing.");
+            if (session.HotelId != scopedHotelId.Value)
+                throw new UnauthorizedAccessException("You cannot create transactions for another hotel.");
+        }
+
         var entity = new CashTransaction
         {
-            HotelId = hotelId,
+            HotelId = session.HotelId,
+            CashSessionId = session.CashSessionId,
             ActorUserId = actorUserId,
             Type = request.Type,
-            Currency = request.Currency,
+            Currency = session.Currency,
+            Shift = session.Shift,
             Amount = request.Amount,
             Note = note,
             Category = string.IsNullOrWhiteSpace(request.Category) ? null : request.Category.Trim(),
@@ -57,12 +72,12 @@ public class CashTransactionService : ICashTransactionService
         DateTime? toUtc,
         CashTransactionType? type,
         CurrencyCode? currency,
+        CashShift? shift,
         int page,
         int pageSize,
         int? scopedHotelId,
         bool isStaff)
     {
-        // Staff users are scoped to one hotel.
         if (isStaff)
         {
             if (!scopedHotelId.HasValue) throw new UnauthorizedAccessException("Staff hotel scope is missing.");
@@ -79,6 +94,7 @@ public class CashTransactionService : ICashTransactionService
             toUtc,
             type,
             currency,
+            shift,
             page,
             pageSize);
 
@@ -94,6 +110,7 @@ public class CashTransactionService : ICashTransactionService
             ActorUserId = x.ActorUserId,
             Type = x.Type,
             Currency = x.Currency,
+            Shift = x.Shift,
             Amount = x.Amount,
             Note = x.Note,
             Category = x.Category,

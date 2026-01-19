@@ -3,6 +3,7 @@ using System;
 using HotelBookingPlatform.Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -11,9 +12,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace HotelBookingPlatform.Infrastructure.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260116023853_AddCashTransactionShift")]
+    partial class AddCashTransactionShift
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -138,47 +141,6 @@ namespace HotelBookingPlatform.Infrastructure.Migrations
                     b.ToTable("Bookings");
                 });
 
-            modelBuilder.Entity("HotelBookingPlatform.Domain.Entities.CashSession", b =>
-                {
-                    b.Property<int>("CashSessionId")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("integer");
-
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("CashSessionId"));
-
-                    b.Property<DateTime?>("ClosedAtUtc")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<string>("ClosedByUserId")
-                        .HasColumnType("text");
-
-                    b.Property<decimal?>("ClosingCounted")
-                        .HasColumnType("numeric(18,2)");
-
-                    b.Property<int>("Currency")
-                        .HasColumnType("integer");
-
-                    b.Property<int>("HotelId")
-                        .HasColumnType("integer");
-
-                    b.Property<DateTime>("OpenedAtUtc")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<string>("OpenedByUserId")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<decimal>("OpeningBalance")
-                        .HasColumnType("numeric(18,2)");
-
-                    b.Property<int>("Shift")
-                        .HasColumnType("integer");
-
-                    b.HasKey("CashSessionId");
-
-                    b.ToTable("CashSessions");
-                });
-
             modelBuilder.Entity("HotelBookingPlatform.Domain.Entities.CashTransaction", b =>
                 {
                     b.Property<int>("CashTransactionID")
@@ -193,9 +155,6 @@ namespace HotelBookingPlatform.Infrastructure.Migrations
 
                     b.Property<decimal>("Amount")
                         .HasColumnType("DECIMAL(18,2)");
-
-                    b.Property<int?>("CashSessionId")
-                        .HasColumnType("integer");
 
                     b.Property<string>("Category")
                         .HasMaxLength(100)
@@ -228,8 +187,6 @@ namespace HotelBookingPlatform.Infrastructure.Migrations
                     b.HasKey("CashTransactionID");
 
                     b.HasIndex("ActorUserId");
-
-                    b.HasIndex("CashSessionId");
 
                     b.HasIndex("HotelId", "CreatedAtUtc");
 
@@ -1007,11 +964,6 @@ namespace HotelBookingPlatform.Infrastructure.Migrations
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
-                    b.HasOne("HotelBookingPlatform.Domain.Entities.CashSession", "CashSession")
-                        .WithMany("Transactions")
-                        .HasForeignKey("CashSessionId")
-                        .OnDelete(DeleteBehavior.SetNull);
-
                     b.HasOne("HotelBookingPlatform.Domain.Entities.Hotel", "Hotel")
                         .WithMany()
                         .HasForeignKey("HotelId")
@@ -1019,8 +971,6 @@ namespace HotelBookingPlatform.Infrastructure.Migrations
                         .IsRequired();
 
                     b.Navigation("ActorUser");
-
-                    b.Navigation("CashSession");
 
                     b.Navigation("Hotel");
                 });
@@ -1268,11 +1218,6 @@ namespace HotelBookingPlatform.Infrastructure.Migrations
             modelBuilder.Entity("HotelBookingPlatform.Domain.Entities.Booking", b =>
                 {
                     b.Navigation("Invoice");
-                });
-
-            modelBuilder.Entity("HotelBookingPlatform.Domain.Entities.CashSession", b =>
-                {
-                    b.Navigation("Transactions");
                 });
 
             modelBuilder.Entity("HotelBookingPlatform.Domain.Entities.City", b =>

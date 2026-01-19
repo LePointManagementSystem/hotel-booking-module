@@ -13,6 +13,7 @@ public interface ICashTransactionService
         DateTime? toUtc,
         CashTransactionType? type,
         CurrencyCode? currency,
+        CashShift? shift,
         int page,
         int pageSize,
         int? scopedHotelId,

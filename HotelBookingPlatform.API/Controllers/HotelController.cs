@@ -80,8 +80,8 @@ public class HotelController : ControllerBase
     [ResponseCache(CacheProfileName = "DefaultCache")]
     [SwaggerOperation(Summary = "Search for hotels", Description = "Searches for hotels based on name and description with pagination.")]
     public async Task<IActionResult> SearchHotel(
-        [FromQuery] string name,
-        [FromQuery] string desc,
+        [FromQuery] string? name = "",
+        [FromQuery] string? desc = "",
         [FromQuery] int pageSize = 10,
         [FromQuery] int pageNumber = 1)
     {
@@ -96,7 +96,7 @@ public class HotelController : ControllerBase
             return _responseHandler.Success(new[] { hotel });
         }
 
-        var hotels = await _hotelSearchService.GetHotels(name, desc, pageSize, pageNumber);
+        var hotels = await _hotelSearchService.GetHotels(name ?? "", desc ?? "", pageSize, pageNumber);
         return _responseHandler.Success(hotels);
     }
 

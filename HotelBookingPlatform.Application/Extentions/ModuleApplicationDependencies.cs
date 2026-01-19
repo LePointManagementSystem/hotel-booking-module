@@ -14,6 +14,7 @@ using HotelBookingPlatform.Application.Core.Implementations.CashManagementServic
 using HotelBookingPlatform.Application.Core.Abstracts.ReportsManagementService;
 using HotelBookingPlatform.Application.Core.Implementations.ReportsManagementService;
 
+
 using System.Reflection;
 using FluentValidation;
 using Microsoft.Extensions.DependencyInjection;
@@ -55,6 +56,7 @@ public static class ModuleApplicationDependencies
         services.AddScoped<INotificationService, NotificationService>();
         services.AddScoped<ICashTransactionService, CashTransactionService>();
         services.AddScoped<IReportsService, ReportsService>();
+        services.AddScoped<ICashSessionService, CashSessionService>();
 
 
 

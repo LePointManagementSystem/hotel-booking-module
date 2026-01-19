@@ -21,4 +21,7 @@ public class CreateCashTransactionRequest
 
     public string? Category { get; set; }
     public string? Reference { get; set; }
+
+    public CashShift Shift { get; set; } = CashShift.Morning;
+    public int? CashSessionId { get; set; }
 }

@@ -11,6 +11,7 @@ public interface ICashTransactionRepository : IGenericRepository<CashTransaction
         DateTime? toUtc = null,
         CashTransactionType? type = null,
         CurrencyCode? currency = null,
+        CashShift? shift = null,
         int page = 1,
         int pageSize = 100);
 }

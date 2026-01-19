@@ -1,4 +1,6 @@
-﻿namespace HotelBookingPlatform.Infrastructure.Data
+﻿using System.Dynamic;
+
+namespace HotelBookingPlatform.Infrastructure.Data
 {
     public class AppDbContext : IdentityDbContext<LocalUser>
     {
@@ -58,6 +60,7 @@
             modelBuilder.ApplyConfiguration(new StaffConfiguration());
             modelBuilder.ApplyConfiguration(new NotificationConfiguration());
             modelBuilder.ApplyConfiguration(new CashTransactionConfiguration());
+            modelBuilder.ApplyConfiguration(new CashSessionConfiguration());
         }
         public DbSet<Hotel> Hotels { get; set; }
         public DbSet<Owner> Owners { get; set; }
@@ -75,5 +78,6 @@
         public DbSet<Staff> Staff { get; set; }
         public DbSet<Notification> Notifications { get; set; }
         public DbSet<CashTransaction> CashTransactions { get; set; }
+        public DbSet<CashSession> CashSessions { get; set; }
     }
 }

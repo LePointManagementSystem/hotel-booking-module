@@ -18,4 +18,6 @@ public class CashTransactionDto
     public string? Reference { get; set; }
 
     public DateTime CreatedAtUtc { get; set; }
+
+    public CashShift Shift { get; set; }
 }

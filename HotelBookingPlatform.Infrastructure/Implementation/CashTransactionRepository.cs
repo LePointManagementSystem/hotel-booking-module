@@ -16,6 +16,7 @@ public class CashTransactionRepository : GenericRepository<CashTransaction>, ICa
         DateTime? toUtc = null,
         CashTransactionType? type = null,
         CurrencyCode? currency = null,
+        CashShift? shift = null,
         int page = 1,
         int pageSize = 100)
     {
@@ -31,6 +32,7 @@ public class CashTransactionRepository : GenericRepository<CashTransaction>, ICa
         if (toUtc.HasValue) q = q.Where(x => x.CreatedAtUtc <= toUtc.Value);
         if (type.HasValue) q = q.Where(x => x.Type == type.Value);
         if (currency.HasValue) q = q.Where(x => x.Currency == currency.Value);
+        if (shift.HasValue) q = q.Where(x => x.Shift == shift.Value);
 
         return await q
             .OrderByDescending(x => x.CreatedAtUtc)

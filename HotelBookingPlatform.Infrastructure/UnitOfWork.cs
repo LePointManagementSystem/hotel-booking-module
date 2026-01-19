@@ -12,6 +12,7 @@ namespace HotelBookingPlatform.Infrastructure
     {
         private readonly AppDbContext _context;
         private readonly UserManager<LocalUser> _userManager;
+        public ICashSessionRepository CashSessionRepository { get; set; }
 
         public UnitOfWork(AppDbContext context, UserManager<LocalUser> userManager)
         {
@@ -35,6 +36,8 @@ namespace HotelBookingPlatform.Infrastructure
 
             NotificationRepository = new NotificationRepository(_context); // ✅ ok
             CashTransactionRepository = new CashTransactionRepository(_context);
+            CashSessionRepository = new CashSessionRepository(_context);
+
         }
 
         public IHotelRepository HotelRepository { get; }

@@ -20,6 +20,7 @@ namespace HotelBookingPlatform.Domain
         IStaffRepository StaffRepository { get; }
         INotificationRepository NotificationRepository { get; }
         ICashTransactionRepository CashTransactionRepository { get; }
+        ICashSessionRepository CashSessionRepository { get; }
 
 
         Task<int> SaveChangesAsync();
