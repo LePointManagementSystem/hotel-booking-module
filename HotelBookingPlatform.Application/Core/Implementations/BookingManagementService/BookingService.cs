@@ -280,45 +280,69 @@ int? enforcedHotelId = null;
         result.UserName = user.UserName;
         return result;
     }
-    public async Task UpdateBookingStatusAsync(int bookingId, BookingStatus newStatus)
+   
+
+   public async Task UpdateBookingStatusAsync(int bookingId, BookingStatus newStatus)
+{
+    // ✅ IMPORTANT: load booking WITH Rooms (and optionally Guest/User)
+    var booking = await _unitOfWork.BookingRepository.GetByIdWithRoomsAsync(bookingId);
+    // Si tu n'as pas cette méthode, je te dis juste après comment la créer.
+
+    if (booking is null)
+        throw new NotFoundException($"Booking with ID {bookingId} not found.");
+
+    if (booking.Status == BookingStatus.Completed && newStatus != BookingStatus.Completed)
+        throw new InvalidOperationException("Cannot change the status of a completed booking.");
+
+    var previousStatus = booking.Status;
+
+    // ✅ Update status
+    booking.Status = newStatus;
+
+    // ✅ Update room availability
+    if (booking.Rooms != null && booking.Rooms.Any())
     {
-        var booking = await _unitOfWork.BookingRepository.GetByIdAsync(bookingId);
-
-        if (booking is null)
-            throw new NotFoundException($"Booking with ID {bookingId} not found.");
-
-        if (booking.Status == BookingStatus.Completed && newStatus != BookingStatus.Completed)
-            throw new InvalidOperationException("Cannot change the status of a completed booking.");
-
-        // Update of statut
-        booking.Status = newStatus;
-
-        //available of room
-        if (booking.Rooms != null && booking.Rooms.Any())
+        if (newStatus == BookingStatus.Cancelled || newStatus == BookingStatus.Completed)
         {
-            if (newStatus == BookingStatus.Cancelled || newStatus == BookingStatus.Completed)
+            foreach (var room in booking.Rooms)
             {
-                foreach (var room in booking.Rooms)
-                {
-                    room.IsAvailable = true;
-
-                    await _unitOfWork.RoomRepository.UpdateAsync(room.RoomID, room);
-
-                }
-            }
-            else if (newStatus == BookingStatus.Confirmed)
-            {
-                foreach (var room in booking.Rooms)
-                {
-                    room.IsAvailable = false;
-
-                    await _unitOfWork.RoomRepository.UpdateAsync(room.RoomID, room);
-                }
+                room.IsAvailable = true;
+                // ✅ no UpdateAsync here (let EF track changes)
             }
         }
-        await _unitOfWork.BookingRepository.UpdateAsync(booking.BookingID, booking);
-        await _unitOfWork.SaveChangesAsync();
+        else if (newStatus == BookingStatus.Confirmed)
+        {
+            foreach (var room in booking.Rooms)
+            {
+                room.IsAvailable = false;
+            }
         }
+    }
+
+    // ✅ Create notification when manually completed
+    if (previousStatus != BookingStatus.Completed &&
+        previousStatus != BookingStatus.Cancelled &&
+        newStatus == BookingStatus.Completed)
+    {
+        var rooms = booking.Rooms?.Select(r => $"#{r.Number}").ToList() ?? new List<string>();
+        var roomsLabel = rooms.Count > 0 ? string.Join(", ", rooms) : "-";
+        var nowUtc = DateTime.UtcNow;
+
+        await _notificationService.CreateHotelNotificationAsync(
+            hotelId: booking.HotelId,
+            type: NotificationType.BookingCompleted,
+            title: "Booking Completed",
+            message: $"Booking {booking.BookingID} completed. Rooms {roomsLabel}.",
+            eventAtUtc: nowUtc,
+            bookingId: booking.BookingID,
+            roomId: null
+        );
+    }
+
+    // ✅ single commit
+    await _unitOfWork.SaveChangesAsync();
+}
+
 
 
 public async Task CancelBookingAsync(int bookingId, string reason, string? cancelledByUserId)
