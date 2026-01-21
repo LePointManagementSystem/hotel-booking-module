@@ -12,18 +12,18 @@ public class CashTransactionRepository : GenericRepository<CashTransaction>, ICa
 
     public async Task<IReadOnlyList<CashTransaction>> GetByHotelAsync(
         int hotelId,
-        DateTime? fromUtc = null,
-        DateTime? toUtc = null,
-        CashTransactionType? type = null,
-        CurrencyCode? currency = null,
-        CashShift? shift = null,
-        int page = 1,
-        int pageSize = 100)
+        DateTime? fromUtc ,
+        DateTime? toUtc ,
+        CashTransactionType? type,
+        CurrencyCode? currency,
+        CashShift? shift,
+        int page,
+        int pageSize)
     {
-        page = page < 1 ? 1 : page;
-        pageSize = pageSize is < 1 or > 500 ? 100 : pageSize;
+        // page = page < 1 ? 1 : page;
+        // pageSize = pageSize is < 1 or > 500 ? 100 : pageSize;
 
-        var q = _appDbContext.Set<CashTransaction>()
+        var q = _appDbContext.CashTransactions
             .AsNoTracking()
             .Include(x => x.ActorUser)
             .Where(x => x.HotelId == hotelId);
