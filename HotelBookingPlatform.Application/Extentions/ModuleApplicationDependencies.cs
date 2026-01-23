@@ -13,6 +13,9 @@ using HotelBookingPlatform.Application.Core.Abstracts.CashManagementService;
 using HotelBookingPlatform.Application.Core.Implementations.CashManagementService;
 using HotelBookingPlatform.Application.Core.Abstracts.ReportsManagementService;
 using HotelBookingPlatform.Application.Core.Implementations.ReportsManagementService;
+using HotelBookingPlatform.Application.Core.Abstracts;
+using HotelBookingPlatform.Application.Services;
+
 
 
 using System.Reflection;
@@ -57,6 +60,8 @@ public static class ModuleApplicationDependencies
         services.AddScoped<ICashTransactionService, CashTransactionService>();
         services.AddScoped<IReportsService, ReportsService>();
         services.AddScoped<ICashSessionService, CashSessionService>();
+        services.AddScoped<IGuestService, GuestService>();
+
 
 
 

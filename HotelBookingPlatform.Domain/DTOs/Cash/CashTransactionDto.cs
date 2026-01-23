@@ -6,6 +6,7 @@ public class CashTransactionDto
 {
     public int CashTransactionId { get; set; }
     public int HotelId { get; set; }
+    public int CashSessionId { get; set; }
 
     public string ActorUserId { get; set; } = string.Empty;
 
