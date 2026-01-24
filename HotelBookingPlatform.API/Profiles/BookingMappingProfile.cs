@@ -16,8 +16,9 @@ public class BookingMappingProfile :Profile
         .ForMember(dest => dest.GuestCIN, opt => opt.MapFrom(src => src.Guest != null ? src.Guest.CIN : null))
         .ForMember(dest => dest.CancellationReason, opt => opt.MapFrom(src => src.CancellationReason))
         .ForMember(dest => dest.CancelledAtUtc, opt => opt.MapFrom(src => src.CancelledAtUtc))
-        .ForMember(dest => dest.CancelledByUserId, opt => opt.MapFrom(src => src.CancelledByUserId));
-
+        .ForMember(dest => dest.CancelledByUserId, opt => opt.MapFrom(src => src.CancelledByUserId))
+        .ForMember(dest => dest.BookingId, opt => opt.MapFrom(src => src.BookingID))
+        .ForMember(dest => dest.ConfirmationNumber, opt => opt.MapFrom(src => src.ConfirmationNumber));
 
         CreateMap<BookingCreateRequest, Booking>()
             .ForMember(dest => dest.UserId, opt => opt.Ignore())

@@ -295,7 +295,7 @@ public class ReportsController : ControllerBase
                 "Category",
                 "Note",
                 "Reference",
-                "ActorUserId"
+                "ActorUserName"
             );
 
             int r = 2;
@@ -313,7 +313,7 @@ public class ReportsController : ControllerBase
                     t.Category,
                     t.Note,
                     t.Reference,
-                    t.ActorUserId
+                    t.ActorUserName ?? t.ActorUserId
                 );
             }
         });
