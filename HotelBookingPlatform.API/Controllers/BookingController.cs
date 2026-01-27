@@ -228,6 +228,7 @@ public async Task<IActionResult> CancelBooking(int id, [FromBody] CancelBookingR
 
     var cancelledByUserId = User.FindFirstValue(ClaimTypes.NameIdentifier);
     await _bookingService.CancelBookingAsync(id, request.Reason, cancelledByUserId);
+   
 
     var userName = User.Identity?.Name;
     var role = User.FindFirst(ClaimTypes.Role)?.Value;
