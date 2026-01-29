@@ -40,7 +40,9 @@ namespace HotelBookingPlatform.Application.Services
                 FirstName = request.FirstName,
                 LastName = request.LastName,
                 CIN = request.CIN,
-                Email = request.Email
+                //Email = request.Email
+                // Email is optional; store null instead of an empty/whitespace string
+                Email = string.IsNullOrWhiteSpace(request.Email) ? null : request.Email.Trim()
             };
 
             _context.Guests.Add(guest);

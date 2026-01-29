@@ -9,6 +9,7 @@ public class CashTransactionDto
     public int CashSessionId { get; set; }
 
     public string ActorUserId { get; set; } = string.Empty;
+    public string? ActorUserName {get; set; }
 
     public CashTransactionType Type { get; set; }
     public CurrencyCode Currency { get; set; }

@@ -9,7 +9,7 @@ namespace HotelBookingPlatform.API.Controllers
     [ApiController]
     [Route("api/[controller]")]
     [Authorize]
-    public class SearchController: ControllerBase
+    public class SearchController : ControllerBase
     {
         private readonly AppDbContext _db;
 
@@ -25,22 +25,18 @@ namespace HotelBookingPlatform.API.Controllers
             [FromQuery] int? hotelId = null,
             [FromQuery] int limit = 6
         )
-
         {
             q = (q ?? "").Trim();
             if (string.IsNullOrWhiteSpace(q))
                 return Ok(new GlobalSearchResponseDto());
-            
+
             limit = Math.Clamp(limit, 3, 20);
+
             var qLower = q.ToLower();
-
-            // optional: if q looks like BK-XXXXXX, remove BK-
             var qNoPrefix = qLower.StartsWith("bk-") ? qLower.Substring(3) : qLower;
-
-            //Try parse bookingId
             var bookingIdParsed = int.TryParse(q, out var bookingId) ? bookingId : (int?)null;
 
-            // --------- Bookings ----------------
+            // ---------------- BOOKINGS ----------------
             var bookingsQuery = _db.Bookings
                 .AsNoTracking()
                 .Include(b => b.Guest)
@@ -50,25 +46,20 @@ namespace HotelBookingPlatform.API.Controllers
             if (hotelId.HasValue)
                 bookingsQuery = bookingsQuery.Where(b => b.HotelId == hotelId.Value);
 
-            bookingsQuery = bookingsQuery.Where(b => 
-            (bookingIdParsed.HasValue && b.BookingID == bookingIdParsed.Value)
-            || (!string.IsNullOrEmpty(b.ConfirmationNumber) && b.ConfirmationNumber.ToLower().Contains(qLower))
-            || (!string.IsNullOrEmpty(b.ConfirmationNumber) && b.ConfirmationNumber.ToLower().Contains(qNoPrefix))
-            || (b.Guest != null && 
-            (
-                (b.Guest.FirstName != null && b.Guest.FirstName.ToLower().Contains(qLower))
-                || (b.Guest.LastName != null && b.Guest.LastName.ToLower().Contains(qLower))
-                || ((b.Guest.FirstName + " " + b.Guest.LastName).ToLower().Contains(qLower))
-                || (b.Guest.CIN != null && b.Guest.CIN.ToLower().Contains(qLower))
-                || (b.Guest.Email != null && b.Guest.Email.ToLower().Contains(qLower))
-
-            )
-            
-            )
-            || (b.Rooms != null && b.Rooms.Any(r =>
-                r.Number != null && r.Number.ToLower().Contains(qLower)
-                ))
-            
+            bookingsQuery = bookingsQuery.Where(b =>
+                (bookingIdParsed.HasValue && b.BookingID == bookingIdParsed.Value)
+                || (b.ConfirmationNumber != null &&
+                    (b.ConfirmationNumber.ToLower().Contains(qLower)
+                     || b.ConfirmationNumber.ToLower().Contains(qNoPrefix)))
+                || (b.Guest != null &&
+                    (
+                        (b.Guest.FirstName != null && b.Guest.FirstName.ToLower().Contains(qLower))
+                        || (b.Guest.LastName != null && b.Guest.LastName.ToLower().Contains(qLower))
+                        || (((b.Guest.FirstName ?? "") + " " + (b.Guest.LastName ?? "")).ToLower().Contains(qLower))
+                        || (b.Guest.CIN != null && b.Guest.CIN.ToLower().Contains(qLower))
+                        || (b.Guest.Email != null && b.Guest.Email.ToLower().Contains(qLower))
+                    ))
+                || (b.Rooms.Any(r => (r.Number ?? "").ToLower().Contains(qLower)))
             );
 
             var bookings = await bookingsQuery
@@ -78,32 +69,30 @@ namespace HotelBookingPlatform.API.Controllers
                 {
                     BookingId = b.BookingID,
                     confirmationNumber = b.ConfirmationNumber ?? "",
-                    GuestName = b.Guest != null ? (b.Guest.FirstName + " " + b.Guest.LastName) : "",
-                    RoomNumbers = b.Rooms != null ? string.Join(", ", b.Rooms.Select(r => r.Number)) : "",
+                    GuestName = b.Guest != null
+                        ? ((b.Guest.FirstName ?? "") + " " + (b.Guest.LastName ?? "")).Trim()
+                        : "",
+                    RoomNumbers = string.Join(", ", b.Rooms.Select(r => r.Number ?? "")),
                     checkInDateUtc = b.CheckInDateUtc,
                     checkOutDateUtc = b.CheckOutDateUtc,
                     Status = b.Status.ToString()
                 })
                 .ToListAsync();
 
-                // --------- Rooms ------------
-                var roomsQuery = _db.Rooms
-                    .AsNoTracking()
-                    .Include(r => r.RoomClass)
-                    .AsQueryable();
+            // ---------------- ROOMS ----------------
+            var roomsQuery = _db.Rooms
+                .AsNoTracking()
+                .Include(r => r.RoomClass)
+                .AsQueryable();
 
-                if (hotelId.HasValue)
+            if (hotelId.HasValue)
             {
-                // Important: adapt if Room has HotelId in your model
-                // If Room doesn't have HotelId, remove this filter.
-                // roomsQuery = roomsQuery.Where(r => r.HotelId == hotelId.Value);
-
+                // Room n'a pas HotelId direct -> RoomClass.HotelId
+                roomsQuery = roomsQuery.Where(r => r.RoomClass != null && r.RoomClass.HotelId == hotelId.Value);
             }
 
             var rooms = await roomsQuery
-                .Where(r => 
-                r.Number != null && r.Number.ToLower().Contains(qLower)
-                )
+                .Where(r => (r.Number ?? "").ToLower().Contains(qLower))
                 .OrderBy(r => r.Number)
                 .Take(limit)
                 .Select(r => new RoomSearchResultDto
@@ -112,38 +101,70 @@ namespace HotelBookingPlatform.API.Controllers
                     Number = r.Number ?? "",
                     RoomClassId = r.RoomClassID,
                     RoomClassName = r.RoomClass != null ? r.RoomClass.Name : ""
-
                 })
                 .ToListAsync();
 
-                // ---------- Guests -----------
-                var guestsQuery = _db.Guests.AsNoTracking().AsQueryable();
-                
-                var guests = await guestsQuery
-                    .Where(g => 
+            // ---------------- GUESTS ----------------
+            var guestsQuery = _db.Guests.AsNoTracking().AsQueryable();
+
+            var guests = await guestsQuery
+                .Where(g =>
                     (g.FirstName != null && g.FirstName.ToLower().Contains(qLower))
                     || (g.LastName != null && g.LastName.ToLower().Contains(qLower))
-                    || ((g.FirstName + " " + g.LastName).ToLower().Contains(qLower))
+                    || (((g.FirstName ?? "") + " " + (g.LastName ?? "")).ToLower().Contains(qLower))
                     || (g.CIN != null && g.CIN.ToLower().Contains(qLower))
                     || (g.Email != null && g.Email.ToLower().Contains(qLower))
-                    )
-                    .OrderBy(g => g.LastName)
-                    .Take(limit)
-                    .Select(g => new GuestSearchResultDto
-                    {
-                        GuestId = g.Id,
-                        FullName = (g.FirstName ?? "") + " " + (g.LastName ?? ""),
-                        CIN = g.CIN ?? "",
-                        Email = g.Email ?? ""
-                    })
-                    .ToListAsync();
-
-                return Ok(new GlobalSearchResponseDto
+                )
+                .OrderBy(g => g.LastName)
+                .Take(limit)
+                .Select(g => new GuestSearchResultDto
                 {
-                    Bookings = bookings,
-                    Rooms = rooms,
-                    Guests = guests
-                });
+                    // ✅ FIX: Guid -> string
+                    GuestId = g.Id.ToString(),
+                    FullName = ((g.FirstName ?? "") + " " + (g.LastName ?? "")).Trim(),
+                    CIN = g.CIN ?? "",
+                    Email = g.Email ?? ""
+                })
+                .ToListAsync();
+
+            // ---------------- STAFF ----------------
+            var staffQuery = _db.Staff
+                .AsNoTracking()
+                .AsQueryable();
+
+            if (hotelId.HasValue)
+                staffQuery = staffQuery.Where(s => s.HotelId == hotelId.Value);
+
+            var staff = await staffQuery
+                .Where(s =>
+                    (s.FirstName != null && s.FirstName.ToLower().Contains(qLower))
+                    || (s.LastName != null && s.LastName.ToLower().Contains(qLower))
+                    || (((s.FirstName ?? "") + " " + (s.LastName ?? "")).ToLower().Contains(qLower))
+                    || (s.Email != null && s.Email.ToLower().Contains(qLower))
+                    || (s.PhoneNumber != null && s.PhoneNumber.ToLower().Contains(qLower))
+                    || (s.Role != null && s.Role.ToLower().Contains(qLower))
+                )
+                .OrderBy(s => s.LastName)
+                .Take(limit)
+                .Select(s => new StaffSearchResultDto
+                {
+                    // ✅ FIX: Staff n'a pas Id, c'est StaffId
+                    StaffId = s.StaffId,
+                    FullName = ((s.FirstName ?? "") + " " + (s.LastName ?? "")).Trim(),
+                    Role = s.Role ?? "",
+                    Email = s.Email ?? "",
+                    // ✅ FIX: DTO attend Phone (pas PhoneNumber)
+                    Phone = s.PhoneNumber ?? ""
+                })
+                .ToListAsync();
+
+            return Ok(new GlobalSearchResponseDto
+            {
+                Bookings = bookings,
+                Rooms = rooms,
+                Guests = guests,
+                Staff = staff
+            });
         }
     }
 }

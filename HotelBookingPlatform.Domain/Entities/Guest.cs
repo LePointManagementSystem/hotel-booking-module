@@ -18,7 +18,7 @@ namespace HotelBookingPlatform.Domain.Entities {
         public string CIN { get; set; }
 
         [EmailAddress]
-        public string Email { get; set; }
+        public string? Email { get; set; }
 
         public ICollection<Booking> Bookings {get; set; }
     }

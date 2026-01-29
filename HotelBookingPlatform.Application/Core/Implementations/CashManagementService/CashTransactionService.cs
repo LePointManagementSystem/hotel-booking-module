@@ -108,6 +108,7 @@ public class CashTransactionService : ICashTransactionService
             CashTransactionId = x.CashTransactionID,
             HotelId = x.HotelId,
             ActorUserId = x.ActorUserId,
+            ActorUserName = x.ActorUser?.UserName,
             Type = x.Type,
             Currency = x.Currency,
             Shift = x.Shift,
