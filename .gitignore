@@ -367,3 +367,6 @@ appsettings.Development.json
 
 HotelBookingPlatform.API/appsettings.Development.json
 .HotelBookingPlatform.API/appsettings.Development.json
+
+# Production logs
+HotelBookingPlatform.API/Production_Env_Log/
