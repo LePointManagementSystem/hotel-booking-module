@@ -7,5 +7,6 @@
         public string Name { get; set; }
         public string? Description { get; set; }
         public string HotelName { get; set; }
+        public int HotelId {get; set;}
     }
 }

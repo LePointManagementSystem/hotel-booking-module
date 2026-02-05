@@ -27,7 +27,7 @@ namespace HotelBookingPlatform.Infrastructure.Configuration
                     .WithMany()
                     .HasForeignKey(s => s.UserId)
                     .IsRequired(false)
-                    .OnDelete(DeleteBehavior.SetNull);
+                    .OnDelete(DeleteBehavior.Restrict);
 
             builder.ToTable("Staff");
             builder.HasIndex(s => new { s.HotelId, s.IsActive });

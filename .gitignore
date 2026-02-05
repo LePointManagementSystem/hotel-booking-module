@@ -370,3 +370,6 @@ HotelBookingPlatform.API/appsettings.Development.json
 
 # Production logs
 HotelBookingPlatform.API/Production_Env_Log/
+
+# macOS
+.DS_Store

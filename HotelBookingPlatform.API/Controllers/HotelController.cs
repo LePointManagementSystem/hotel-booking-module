@@ -1,25 +1,34 @@
-﻿namespace HotelBookingPlatform.API.Controllers;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
+using Swashbuckle.AspNetCore.Annotations;
+
+namespace HotelBookingPlatform.API.Controllers;
+
 [Route("api/[controller]")]
 [ApiController]
+[Authorize(Roles = "Admin,Manager,Staff")]
 public class HotelController : ControllerBase
 {
-        private readonly IHotelManagementService _hotelManagementService;
-        private readonly IHotelSearchService _hotelSearchService;
-        private readonly IHotelAmenityService _hotelAmenityService;
-        private readonly IHotelReviewService _hotelReviewService;
-        private readonly IImageService _imageService;
-        private readonly IResponseHandler _responseHandler;
-        private readonly IHotelRoomService _hotelRoomService;
-        private readonly ILog _logger;
-        private readonly IRoomClassService _roomClassService;
+    private readonly IHotelManagementService _hotelManagementService;
+    private readonly IHotelSearchService _hotelSearchService;
+    private readonly IHotelAmenityService _hotelAmenityService;
+    private readonly IHotelReviewService _hotelReviewService;
+    private readonly IImageService _imageService;
+    private readonly IResponseHandler _responseHandler;
+    private readonly IHotelRoomService _hotelRoomService;
+    private readonly ILog _logger;
+    private readonly IRoomClassService _roomClassService;
+
     public HotelController(
-            IHotelManagementService hotelManagementService,
-            IHotelSearchService hotelSearchService,
-            IHotelAmenityService hotelAmenityService,
-            IHotelReviewService hotelReviewService,
-            IImageService imageService,
-            IResponseHandler responseHandler,
-            ILog logger,IHotelRoomService hotelRoomService,IRoomClassService roomClassService)
+        IHotelManagementService hotelManagementService,
+        IHotelSearchService hotelSearchService,
+        IHotelAmenityService hotelAmenityService,
+        IHotelReviewService hotelReviewService,
+        IImageService imageService,
+        IResponseHandler responseHandler,
+        ILog logger,
+        IHotelRoomService hotelRoomService,
+        IRoomClassService roomClassService)
     {
         _hotelManagementService = hotelManagementService ?? throw new ArgumentNullException(nameof(hotelManagementService));
         _hotelSearchService = hotelSearchService ?? throw new ArgumentNullException(nameof(hotelSearchService));
@@ -32,56 +41,62 @@ public class HotelController : ControllerBase
         _roomClassService = roomClassService ?? throw new ArgumentNullException(nameof(roomClassService));
     }
 
-    // GET: api/Hotel/5
+    private int? GetScopedHotelId()
+    {
+        var v = User.FindFirst("hotelId")?.Value;
+        return int.TryParse(v, out var id) ? id : null;
+    }
+
+    private IActionResult? ForbidIfStaffOtherHotel(int hotelId)
+    {
+        if (!User.IsInRole("Staff")) return null;
+        var scoped = GetScopedHotelId();
+        if (!scoped.HasValue) return Forbid();
+        if (scoped.Value != hotelId) return Forbid("You cannot access another hotel.");
+        return null;
+    }
+
+    // =========================
+    // READ
+    // =========================
+
     [HttpGet("{id}")]
+    [Authorize(Roles="Admin,Manager,Staff")]
     [ResponseCache(CacheProfileName = "DefaultCache")]
     [SwaggerOperation(Summary = "Get a hotel by ID", Description = "Retrieves the details of a specific hotel by its ID.")]
     public async Task<IActionResult> GetHotel(int id)
     {
+        var forbid = ForbidIfStaffOtherHotel(id);
+        if (forbid != null) return forbid;
+
         var hotel = await _hotelManagementService.GetHotel(id);
-        return _responseHandler.Success(hotel, "Hotel Retrieved successfully.");
+        return _responseHandler.Success(hotel, "Hotel retrieved successfully.");
     }
 
-    // PUT: api/Hotel/5
-    [HttpPut("{id}")]
-    [Authorize(Roles = "Admin")]
-    [SwaggerOperation(Summary = "Update an existing hotel", Description = "Updates the details of an existing hotel specified by its ID.")]
-    public async Task<IActionResult> UpdateHotel(int id, [FromBody] HotelResponseDto request)
-    {
-        var updatedHotel = await _hotelManagementService.UpdateHotelAsync(id, request);
-        return _responseHandler.Success(updatedHotel, "Update successfully.");
-    }
-
-    // DELETE: api/Hotel/5
-    [HttpDelete("{id}")]
-    [Authorize(Roles = "Admin")]
-    [SwaggerOperation(Summary = "Delete a hotel", Description = "Deletes a hotel specified by its ID.")]
-    public async Task<IActionResult> DeleteHotel(int id)
-    {
-        var result = _hotelManagementService.DeleteHotel(id);
-        return _responseHandler.Success("Hotel deleted successfully.");
-    }
-
-    [HttpGet("{hotelId}/reviews")]
-    [ResponseCache(CacheProfileName = "DefaultCache")]
-    [SwaggerOperation(Summary = "Get all reviews for a specific hotel.")]
-    public async Task<IActionResult> GetHotelReviews(int hotelId)
-    {
-        var comments = await _hotelReviewService.GetHotelCommentsAsync(hotelId);
-        return _responseHandler.Success(comments, "Reviews retrieved successfully.");
-    }
-
-    // GET: api/Hotel/search
+    // (Optionnel public) => mets [AllowAnonymous] si tu veux que le site public puisse chercher les hôtels
     [HttpGet("search")]
+    [Authorize(Roles="Admin,Manager")]
+
     [ResponseCache(CacheProfileName = "DefaultCache")]
     [SwaggerOperation(Summary = "Search for hotels", Description = "Searches for hotels based on name and description with pagination.")]
     public async Task<IActionResult> SearchHotel(
-        [FromQuery] string name,
-        [FromQuery] string desc,
+        [FromQuery] string? name = "",
+        [FromQuery] string? desc = "",
         [FromQuery] int pageSize = 10,
         [FromQuery] int pageNumber = 1)
     {
-        var hotels = await _hotelSearchService.GetHotels(name, desc, pageSize, pageNumber);
+        // Si Staff : tu peux forcer une recherche uniquement sur SON hôtel (selon ton besoin)
+        if (User.IsInRole("Staff"))
+        {
+            var hid = GetScopedHotelId();
+            if (!hid.HasValue) return Forbid();
+
+            // Si tu as une méthode GetHotel(id), tu peux juste renvoyer son hôtel
+            var hotel = await _hotelManagementService.GetHotel(hid.Value);
+            return _responseHandler.Success(new[] { hotel });
+        }
+
+        var hotels = await _hotelSearchService.GetHotels(name ?? "", desc ?? "", pageSize, pageNumber);
         return _responseHandler.Success(hotels);
     }
 
@@ -89,18 +104,23 @@ public class HotelController : ControllerBase
     [SwaggerOperation(Summary = "Get all rooms associated with a specific hotel.")]
     public async Task<IActionResult> GetRoomsByHotelIdAsync(int hotelId)
     {
+        var forbid = ForbidIfStaffOtherHotel(hotelId);
+        if (forbid != null) return forbid;
+
         _logger.Log($"Fetching rooms for hotel with ID {hotelId}", "info");
-        var rooms = _hotelRoomService.GetRoomsByHotelIdAsync(hotelId);
+        var rooms = await _hotelRoomService.GetRoomsByHotelIdAsync(hotelId);
         return _responseHandler.Success(rooms, "Rooms retrieved successfully.");
     }
 
-    [HttpPost("{hotelId}/amenities")]
-    [Authorize(Roles = "Admin")]
-    [SwaggerOperation(Summary = "Add an amenity to a specific hotel.")]
-    public async Task<IActionResult> AddAmenityToHotel(int hotelId, [FromBody] AmenityCreateRequest request)
+    [HttpGet("{hotelId}/roomclasses")]
+    [SwaggerOperation(Summary = "Retrieve all RoomClasses for a specific hotel.")]
+    public async Task<IActionResult> GetRoomClassesByHotelId(int hotelId)
     {
-        var amenityDto = await _hotelAmenityService.AddAmenityToHotelAsync(hotelId, request);
-        return _responseHandler.Created(amenityDto, "Amenity added successfully.");
+        var forbid = ForbidIfStaffOtherHotel(hotelId);
+        if (forbid != null) return forbid;
+
+        var roomClassesDto = await _roomClassService.GetRoomClassesByHotelId(hotelId);
+        return _responseHandler.Success(roomClassesDto, "Room classes retrieved successfully.");
     }
 
     [HttpGet("{hotelId}/amenities")]
@@ -108,19 +128,24 @@ public class HotelController : ControllerBase
     [SwaggerOperation(Summary = "Get all amenities associated with a specific hotel.")]
     public async Task<IActionResult> GetAmenitiesByHotelId(int hotelId)
     {
+        var forbid = ForbidIfStaffOtherHotel(hotelId);
+        if (forbid != null) return forbid;
+
         _logger.Log($"Fetching amenities for hotel with ID {hotelId}", "info");
         var amenities = await _hotelAmenityService.GetAmenitiesByHotelIdAsync(hotelId);
-        return _responseHandler.Success(amenities, "Amenity Retrieved successfully.");
+        return _responseHandler.Success(amenities, "Amenities retrieved successfully.");
     }
 
-    [HttpDelete("{hotelId}/amenities/{amenityId}")]
-    [Authorize(Roles = "Admin")]
-    [SwaggerOperation(Summary = "Remove an amenity from a specific hotel.")]
-    public async Task<IActionResult> DeleteAmenityFromHotel(int hotelId, int amenityId)
+    [HttpGet("{hotelId}/reviews")]
+    [ResponseCache(CacheProfileName = "DefaultCache")]
+    [SwaggerOperation(Summary = "Get all reviews for a specific hotel.")]
+    public async Task<IActionResult> GetHotelReviews(int hotelId)
     {
-        _logger.Log($"Removing amenity with ID {amenityId} from hotel with ID {hotelId}", "info");
-        await _hotelAmenityService.DeleteAmenityFromHotelAsync(hotelId, amenityId);
-        return _responseHandler.Success("Amenity deleted successfully.");
+        var forbid = ForbidIfStaffOtherHotel(hotelId);
+        if (forbid != null) return forbid;
+
+        var comments = await _hotelReviewService.GetHotelCommentsAsync(hotelId);
+        return _responseHandler.Success(comments, "Reviews retrieved successfully.");
     }
 
     [HttpGet("{id}/rating")]
@@ -128,77 +153,98 @@ public class HotelController : ControllerBase
     [SwaggerOperation(Summary = "Get the review rating of a specific hotel.")]
     public async Task<IActionResult> GetHotelReviewRating(int id)
     {
+        var forbid = ForbidIfStaffOtherHotel(id);
+        if (forbid != null) return forbid;
+
         var ratingDto = await _hotelReviewService.GetHotelReviewRatingAsync(id);
-        return _responseHandler.Success(ratingDto, "retrieve successfully");
-    }
-
-
-    [HttpPost("{hotelId}/upload-image")]
-    [Authorize(Roles = "Admin")]
-    [SwaggerOperation(Summary = "Upload an image for a specific hotel.")]
-    public async Task<IActionResult> UploadHotelImage(int hotelId, IFormFile file)
-    {
-        if (file.Length == 0)
-            return _responseHandler.BadRequest("No file uploaded.");
-
-        var uploadResult = await _imageService.UploadImageAsync(file,"Hotels", hotelId);
-
-        _logger.Log($"Image uploaded for hotel ID: {hotelId}, URL: {uploadResult.SecureUrl.ToString()}", "info");
-
-        var response = new
-        {
-            Url = uploadResult.SecureUrl.ToString(),
-        };
-
-        return _responseHandler.Success(response, "Image uploaded successfully for the hotel.");
-    }
-
-
-    [HttpDelete("{hotelId}/delete-image/{publicId}")]
-    [Authorize(Roles = "Admin")]
-    [SwaggerOperation(Summary = "Delete an image from a specific hotel.")]
-    public async Task<IActionResult> DeleteHotelImage(int hotelId, string publicId)
-    {
-        var deletionResult = await _imageService.DeleteImageAsync(publicId);
-        return _responseHandler.Success("Image deleted successfully.");
+        return _responseHandler.Success(ratingDto, "Retrieved successfully.");
     }
 
     [HttpGet("{hotelId}/images")]
     [SwaggerOperation(Summary = "Retrieve all images associated with a specific hotel.")]
-    public async Task<IActionResult> GetImagesForCity(int hotelId)
+    public async Task<IActionResult> GetImagesForHotel(int hotelId)
     {
+        var forbid = ForbidIfStaffOtherHotel(hotelId);
+        if (forbid != null) return forbid;
+
         var hotelImages = await _imageService.GetImagesByTypeAsync("Hotels");
+        var images = hotelImages.Where(img => img.EntityId == hotelId).ToList();
 
-        var Images = hotelImages.Where(img => img.EntityId == hotelId);
+        if (!images.Any())
+            return _responseHandler.NotFound("No images found for the specified hotel.");
 
-        if (!Images.Any())
-            return _responseHandler.NotFound("No images found for the specified city.");
-
-        var response = new
+        return _responseHandler.Success(new
         {
-            Images = hotelImages,
+            Images = images,
             Message = "Images retrieved successfully for the hotel."
-        };
-
-        return _responseHandler.Success(response,"Images retrieved successfully for the hotel.");
+        });
     }
 
+    // =========================
+    // WRITE (Admin only)
+    // =========================
+
+    [HttpPut("{id}")]
+    [Authorize(Roles = "Admin")]
+    public async Task<IActionResult> UpdateHotel(int id, [FromBody] HotelResponseDto request)
+    {
+        var updatedHotel = await _hotelManagementService.UpdateHotelAsync(id, request);
+        return _responseHandler.Success(updatedHotel, "Updated successfully.");
+    }
+
+    [HttpDelete("{id}")]
+    [Authorize(Roles = "Admin")]
+    public async Task<IActionResult> DeleteHotel(int id)
+    {
+        await _hotelManagementService.DeleteHotel(id);
+        return _responseHandler.Success("Hotel deleted successfully.");
+    }
+
+    [HttpPost("{hotelId}/amenities")]
+    [Authorize(Roles = "Admin")]
+    public async Task<IActionResult> AddAmenityToHotel(int hotelId, [FromBody] AmenityCreateRequest request)
+    {
+        var amenityDto = await _hotelAmenityService.AddAmenityToHotelAsync(hotelId, request);
+        return _responseHandler.Created(amenityDto, "Amenity added successfully.");
+    }
+
+    [HttpDelete("{hotelId}/amenities/{amenityId}")]
+    [Authorize(Roles = "Admin")]
+    public async Task<IActionResult> DeleteAmenityFromHotel(int hotelId, int amenityId)
+    {
+        await _hotelAmenityService.DeleteAmenityFromHotelAsync(hotelId, amenityId);
+        return _responseHandler.Success("Amenity deleted successfully.");
+    }
+
+    [HttpPost("{hotelId}/upload-image")]
+    [Authorize(Roles = "Admin")]
+    public async Task<IActionResult> UploadHotelImage(int hotelId, IFormFile file)
+    {
+        if (file == null || file.Length == 0)
+            return _responseHandler.BadRequest("No file uploaded.");
+
+        var uploadResult = await _imageService.UploadImageAsync(file, "Hotels", hotelId);
+
+        return _responseHandler.Success(new { Url = uploadResult.SecureUrl.ToString() },
+            "Image uploaded successfully for the hotel.");
+    }
+
+    [HttpDelete("{hotelId}/delete-image/{publicId}")]
+    [Authorize(Roles = "Admin")]
+    public async Task<IActionResult> DeleteHotelImage(int hotelId, string publicId)
+    {
+        await _imageService.DeleteImageAsync(publicId);
+        return _responseHandler.Success("Image deleted successfully.");
+    }
 
     [HttpPost("{hotelId}/roomclasses")]
     [Authorize(Roles = "Admin")]
-    [SwaggerOperation(Summary = "Add a RoomClass to a specific hotel.")]
     public async Task<IActionResult> AddRoomClassToHotel(int hotelId, [FromBody] RoomClassRequestDto request)
-    {    
+    {
+        // IMPORTANT: éviter qu’on envoie un HotelId différent dans le body
+        request.HotelId = hotelId;
+
         var roomClassDto = await _roomClassService.CreateRoomClass(request);
         return _responseHandler.Created(roomClassDto, "RoomClass added successfully.");
     }
-
-    [HttpGet("{hotelId}/roomclasses")]
-    [SwaggerOperation(Summary = "Retrieve all RoomClasses for a specific hotel.")]
-    public async Task<IActionResult> GetRoomClassesByHotelId(int hotelId)
-    {
-        var roomClassesDto = await _roomClassService.GetRoomClassesByHotelId(hotelId);
-        return _responseHandler.Success(roomClassesDto, "Room classes retrieved successfully.");
-    }
 }
-

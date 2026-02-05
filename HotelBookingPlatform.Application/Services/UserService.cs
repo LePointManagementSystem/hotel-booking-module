@@ -15,7 +15,9 @@ public class UserService : IUserService
     }
     public async Task<AuthModel> RegisterAsync(RegisterModel model)
     {
-        var validRoles = new List<string> { "Admin", "User", "Staff" };
+        var validRoles = new List<string> { "User", "Staff", "Manager", "HR", "Receptionist"};
+        if(model.Role == "Admin")
+            throw new BadRequestException("Admin role cannot be created via register. Use seeded admin only.");
         if (!validRoles.Contains(model.Role))
         {
             throw new BadRequestException("Invalid role. Allowed roles are 'Admin' or 'User' or 'Staff'.");

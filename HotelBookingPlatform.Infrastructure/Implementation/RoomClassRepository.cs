@@ -46,10 +46,15 @@ namespace HotelBookingPlatform.Infrastructure.Implementation
         }
 
         public async Task<IEnumerable<RoomClass>> GetAllAsync()
-        {
-            return await ApplyIncludes(_appDbContext.RoomClasses, includeDiscounts: true, includeAmenities: false, includeRooms: false, includeHotel: false)
-                .ToListAsync();
-        }
+    {
+        return await ApplyIncludes(_appDbContext.RoomClasses,
+                includeDiscounts: true,
+                includeAmenities: false,
+                includeRooms: false,
+                includeHotel: true) // ✅ important
+            .ToListAsync();
+    }
+
 
         public async Task<RoomClass> GetByIdAsync(int id)
         {

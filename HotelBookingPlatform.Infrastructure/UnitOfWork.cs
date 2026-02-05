@@ -1,14 +1,18 @@
 ﻿using System;
-using ILog = HotelBookingPlatform.Domain.ILogger.ILog;
+using HotelBookingPlatform.Domain;
 using HotelBookingPlatform.Domain.Abstracts;
+using HotelBookingPlatform.Domain.Entities;
+using HotelBookingPlatform.Infrastructure.Data;
 using HotelBookingPlatform.Infrastructure.Implementation;
+using Microsoft.AspNetCore.Identity;
+
 namespace HotelBookingPlatform.Infrastructure
 {
     public class UnitOfWork<T> : IUnitOfWork<T> where T : class
     {
         private readonly AppDbContext _context;
         private readonly UserManager<LocalUser> _userManager;
-        private readonly ILog _logger;
+        public ICashSessionRepository CashSessionRepository { get; set; }
 
         public UnitOfWork(AppDbContext context, UserManager<LocalUser> userManager)
         {
@@ -28,22 +32,32 @@ namespace HotelBookingPlatform.Infrastructure
             UserRepository = new UserRepository(_userManager, _context);
             ImageRepository = new ImageRepository(_context);
             StaffRepository = new StaffRepository(_context);
+            GuestRepository = new GuestRepository(_context);
+
+            NotificationRepository = new NotificationRepository(_context); // ✅ ok
+            CashTransactionRepository = new CashTransactionRepository(_context);
+            CashSessionRepository = new CashSessionRepository(_context);
+
         }
-        public IHotelRepository HotelRepository { get; set; }
-        public IBookingRepository BookingRepository { get; set; }
-        public IRoomClasseRepository RoomClasseRepository { get; set; }
-        public IRoomRepository RoomRepository { get; set; }
-        public ICityRepository CityRepository { get; set; }
-        public IOwnerRepository OwnerRepository { get; set; }
-        public IDiscountRepository DiscountRepository { get; set; }
-        public IReviewRepository ReviewRepository { get; set; }
-        public IInvoiceRecordRepository InvoiceRecordRepository { get; set; }
-        public IAmenityRepository AmenityRepository { get; set; }
-        public IUserRepository UserRepository { get; set; }
-        public IImageRepository ImageRepository { get; set; }
-        public IStaffRepository StaffRepository { get; set; }
+
+        public IHotelRepository HotelRepository { get; }
+        public IBookingRepository BookingRepository { get; }
+        public IRoomClasseRepository RoomClasseRepository { get; }
+        public IRoomRepository RoomRepository { get; }
+        public ICityRepository CityRepository { get; }
+        public IOwnerRepository OwnerRepository { get; }
+        public IDiscountRepository DiscountRepository { get; }
+        public IReviewRepository ReviewRepository { get; }
+        public IInvoiceRecordRepository InvoiceRecordRepository { get; }
+        public IAmenityRepository AmenityRepository { get; }
+        public IUserRepository UserRepository { get; }
+        public IImageRepository ImageRepository { get; }
+        public IStaffRepository StaffRepository { get; }
+        public IGuestRepository GuestRepository { get; }
+
+        public INotificationRepository NotificationRepository { get; }
+        public ICashTransactionRepository CashTransactionRepository { get; }
 
         public async Task<int> SaveChangesAsync() => await _context.SaveChangesAsync();
     }
-
 }

@@ -4,6 +4,9 @@ public class ConfirmationNumberGeneratorService : IConfirmationNumberGeneratorSe
 {
     public string GenerateConfirmationNumber()
     {
-        return Guid.NewGuid().ToString();
+        // 6 caracteres hex(xomme D7A2F0)
+        //return Guid.NewGuid().ToString();
+        var code = Guid.NewGuid().ToString("N")[..6].ToUpperInvariant();
+        return $"BK-{code}";
     }
 }

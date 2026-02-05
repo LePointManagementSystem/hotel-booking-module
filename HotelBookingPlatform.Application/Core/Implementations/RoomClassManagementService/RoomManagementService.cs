@@ -26,6 +26,7 @@ public class RoomManagementService : IRoomManagementService
         roomClass.Rooms.Add(room);
 
         await _unitOfWork.RoomClasseRepository.UpdateAsync(roomClassId, roomClass);
+        await _unitOfWork.SaveChangesAsync();
 
         return _mapper.Map<RoomResponseDto>(room);
     }
@@ -55,5 +56,6 @@ public class RoomManagementService : IRoomManagementService
         roomClass.Rooms.Remove(room);
 
         await _unitOfWork.RoomClasseRepository.UpdateAsync(roomClassId, roomClass);
+        await _unitOfWork.SaveChangesAsync();
     }
 }

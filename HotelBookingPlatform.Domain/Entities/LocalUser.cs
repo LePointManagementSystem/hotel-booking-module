@@ -9,7 +9,7 @@ namespace HotelBookingPlatform.Domain.Entities
 
         public ICollection<Booking> Bookings { get; set; }
         public ICollection<Review> Reviews { get; set; }
-        public List<RefreshToken>? RefreshTokens { get; set; }
+        public List<RefreshToken> RefreshTokens { get; set; }
 
     }
 }

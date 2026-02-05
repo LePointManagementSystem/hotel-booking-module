@@ -29,5 +29,22 @@ namespace HotelBookingPlatform.Infrastructure.Implementation
                 throw new KeyNotFoundException($"Staff with ID {id} not found.");
             return entity;
         }
+
+        public async Task<Staff?> GetByUserIdAsync(string userId)
+        {
+            return await _appDbContext.Set<Staff>()
+                .Include(s => s.Hotel)
+                .AsNoTracking()
+                .FirstOrDefaultAsync(s => s.UserId == userId);
+        }
+
+        public async Task<IEnumerable<Staff>> GetAllWithHotelAsync()
+    {
+        return await _appDbContext.Set<Staff>()
+            .Include(s => s.Hotel)
+            .AsNoTracking()
+            .ToListAsync();
+    }
+
     }
 }

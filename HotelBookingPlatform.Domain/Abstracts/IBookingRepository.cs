@@ -4,6 +4,7 @@
     {
 
         Task<IEnumerable<Booking>> GetAllBookingsAsync();
+        Task<IEnumerable<Booking>> GetBookingsByHotelAsync(int hotelId);
         Task<Booking> GetByIdAsync(int id);
         Task<Booking?> GetByIdWithRoomsAsync(int id);
 

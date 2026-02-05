@@ -8,6 +8,7 @@ namespace HotelBookingPlatform.API.Controllers;
 [ApiController]
 public class RoomController : ControllerBase
 {
+    private readonly IRoomClassService _roomClassService;
     private readonly IRoomService _roomService;
     private readonly IImageService _imageService;
     private readonly IResponseHandler _responseHandler;
@@ -15,12 +16,14 @@ public class RoomController : ControllerBase
     private readonly IBookingService _bookingService;
 
     public RoomController(
+        IRoomClassService roomClassService,
         IRoomService roomService,
         IImageService imageService,
         IResponseHandler responseHandler,
         ILog logger,
         IBookingService bookingService)
     {
+        _roomClassService = roomClassService;
         _roomService = roomService;
         _imageService = imageService;
         _responseHandler = responseHandler;
@@ -29,6 +32,7 @@ public class RoomController : ControllerBase
     }
 
     [HttpGet("available")]
+    [Authorize(Roles="Admin,Manager,Staff")]
     [SwaggerOperation(
         Summary = "Get all available rooms based on date range",
         Description = "Returns rooms where IsAvailable is true and no active booking exists for the specified date range.")]
@@ -37,6 +41,14 @@ public class RoomController : ControllerBase
         [FromQuery] DateTime checkIn,
         [FromQuery] DateTime checkOut)
     {
+        var hotelIdStr = User.FindFirst("hotelId")?.Value;
+        if (User.IsInRole("Staff") && int.TryParse(hotelIdStr, out var hid))
+        {
+            var rc = await _roomClassService.GetRoomClassById(roomClassId);
+            if (rc.HotelId != hid)
+                return Forbid("You cannot view rooms from another hotel.");
+        }
+
         // 1. Release expired bookings
         await _bookingService.ReleaseExpiredBookingsAsync();
 
@@ -70,11 +82,24 @@ public class RoomController : ControllerBase
     }
 
     [HttpGet("{id}")]
+    [Authorize(Roles="Admin,Manager,Staff")]
+    
+ 
     public async Task<IActionResult> GetRoom(int id)
     {
         var room = await _roomService.GetRoomAsync(id);
+
+        if (User.IsInRole("Staff"))
+        {
+            var scoped = User.FindFirst("hotelId")?.Value;
+            if (!int.TryParse(scoped, out var hid)) return Forbid();
+            if (room.HotelId != hid) return Forbid("You cannot access another hotel.");
+        }
+
         return _responseHandler.Success(room, "Room retrieved successfully.");
     }
+
+
 
     [HttpPost("{roomId}/upload-image")]
     [Authorize(Roles = "Admin")]
@@ -120,6 +145,7 @@ public class RoomController : ControllerBase
     }
 
     [HttpGet("available-without-bookings")]
+    [Authorize(Roles = "Admin,Manager,Staff")]
     [SwaggerOperation(
         Summary = "Get available rooms with no bookings",
         Description = "Retrieves a list of available rooms that do not have any bookings.")]
@@ -127,6 +153,14 @@ public class RoomController : ControllerBase
     [SwaggerResponse(404, "No available rooms found without bookings.")]
     public async Task<IActionResult> GetAvailableRoomsWithNoBookings([FromQuery] int roomClassId)
     {
+        var hotelIdStr = User.FindFirst("hotelId")?.Value;
+        if (User.IsInRole("Staff") && int.TryParse(hotelIdStr, out var hid))
+        {
+            var rc = await _roomClassService.GetRoomClassById(roomClassId);
+            if (rc.HotelId != hid)
+                return Forbid("You cannot view rooms from another hotel.");
+        }
+
         var rooms = await _roomService.GetAvailableRoomsWithNoBookingsAsync(roomClassId);
 
         if (!rooms.Any())

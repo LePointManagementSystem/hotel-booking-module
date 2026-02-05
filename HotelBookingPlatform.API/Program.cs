@@ -2,11 +2,21 @@ using Serilog;
 using AutoMapper;
 using HotelBookingPlatform.API.Profiles;
 using HotelBookingPlatform.Application.Services;
+using HotelBookingPlatform.Infrastructure.Identity;
+using System.IdentityModel.Tokens.Jwt;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+
+
 
 
 
 
 var builder = WebApplication.CreateBuilder(args);
+
+// ✅ Prevent default inbound claim mapping issues (important for NameIdentifier/sub)
+JwtSecurityTokenHandler.DefaultInboundClaimTypeMap.Clear();
+JwtSecurityTokenHandler.DefaultMapInboundClaims = false;
+
 
 // Configure Serilog
 SerilogConfiguration.ConfigureLogger();
@@ -40,6 +50,9 @@ builder.Services.AddApplicationDependencies()
                 .AddCloudinary(builder.Configuration);
 
 var app = builder.Build();
+
+await IdentitySeeder.SeedAsync(app.Services, app.Configuration);
+
 
 // Configure middleware
 if (app.Environment.IsDevelopment())

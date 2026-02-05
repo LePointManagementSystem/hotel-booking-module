@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 using HotelBookingPlatform.Application.Services;
+using HotelBookingPlatform.Infrastructure;
 
 
 namespace HotelBookingPlatform.Application.Services;
@@ -17,13 +18,15 @@ public class TokenService : ITokenService
     private readonly RoleManager<IdentityRole> _roleManager;
     private readonly JWT _jwt;
     private readonly IHttpContextAccessor _httpContextAccessor;
+    private readonly IUnitOfWork<Staff> _unitOfWork;
 
-    public TokenService(UserManager<LocalUser> userManager, RoleManager<IdentityRole> roleManager, IOptions<JWT> jwt, IHttpContextAccessor httpContextAccessor)
+    public TokenService(UserManager<LocalUser> userManager, RoleManager<IdentityRole> roleManager, IOptions<JWT> jwt, IHttpContextAccessor httpContextAccessor,IUnitOfWork<Staff> unitOfWork)
     {
         _userManager = userManager;
         _roleManager = roleManager;
         _jwt = jwt.Value;
         _httpContextAccessor = httpContextAccessor;
+        _unitOfWork = unitOfWork;
 
         // Prevents automatic JWT claim transformations (avoids unexpected claim mismatches)
         JwtSecurityTokenHandler.DefaultInboundClaimTypeMap.Clear();
@@ -36,14 +39,35 @@ public class TokenService : ITokenService
         var roleClaims = roles.Select(role => new Claim(ClaimTypes.Role, role)).ToList();
 
         var claims = new List<Claim>
+    {
+        // ✅ sub = user.Id (standard JWT, plus fiable côté API/front)
+        new(JwtRegisteredClaimNames.Sub, user.Id),
+
+        // ✅ name / unique_name pour Identity.Name et compatibilité
+        new(ClaimTypes.Name, user.UserName ?? ""),
+        new(JwtRegisteredClaimNames.UniqueName, user.UserName ?? ""),
+
+        new(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
+
+        // ✅ email en double format (certaines libs lisent ClaimTypes.Email)
+        new(JwtRegisteredClaimNames.Email, user.Email ?? ""),
+        new(ClaimTypes.Email, user.Email ?? ""),
+
+        // ✅ le plus important pour tes controllers: l'Id
+        new(ClaimTypes.NameIdentifier, user.Id),
+    };
+
+        // .Union(userClaims)
+        // .Union(roleClaims);
+        claims.AddRange(userClaims);
+        claims.AddRange(roleClaims);
+
+        var staff = await _unitOfWork.StaffRepository.GetByUserIdAsync(user.Id);
+        if (staff != null && staff.IsActive)
         {
-            new(JwtRegisteredClaimNames.Sub, user.UserName),
-            new(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
-            new(JwtRegisteredClaimNames.Email, user.Email),
-            new(ClaimTypes.NameIdentifier, user.Id)
+            claims.Add(new Claim("hotelId", staff.HotelId.ToString()));
+            claims.Add(new Claim("staffId", staff.StaffId.ToString()));
         }
-        .Union(userClaims)
-        .Union(roleClaims);
 
         var symmetricSecurityKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_jwt.Key));
         var signingCredentials = new SigningCredentials(symmetricSecurityKey, SecurityAlgorithms.HmacSha256);
