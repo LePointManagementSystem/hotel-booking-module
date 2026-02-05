@@ -373,3 +373,7 @@ HotelBookingPlatform.API/Production_Env_Log/
 
 # macOS
 .DS_Store
+
+# macOS
+.DS_Store
+**/.DS_Store
