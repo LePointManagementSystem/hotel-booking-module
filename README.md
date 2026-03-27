@@ -363,6 +363,8 @@ This creates:
 
 - `certs/hotelbooking-selfsigned.pfx`
 
+The generated certificate includes a `subjectAltName` entry for the DNS name, which helps modern browsers accept the hostname correctly.
+
 You can also skip manual certificate generation. The container now creates `/https/hotelbooking-selfsigned.pfx` automatically on first startup if the file is missing and `CERT_PASSWORD` is set.
 
 ### 2. Prepare environment variables

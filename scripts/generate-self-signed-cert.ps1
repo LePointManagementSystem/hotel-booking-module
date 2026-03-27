@@ -1,6 +1,6 @@
 param(
     [string]$DnsName = "localhost",
-    [string]$Password = "dXjfqVWR9dgh",
+    [string]$Password = "change-this-pfx-password",
     [string]$OutputDirectory = "certs",
     [int]$YearsValid = 2
 )
@@ -18,6 +18,7 @@ $cert = New-SelfSignedCertificate `
     -DnsName $DnsName `
     -CertStoreLocation "cert:\CurrentUser\My" `
     -FriendlyName "HotelBookingPlatform Self-Signed TLS" `
+    -TextExtension @("2.5.29.17={text}DNS=$DnsName") `
     -NotAfter (Get-Date).AddYears($YearsValid)
 
 $securePassword = ConvertTo-SecureString -String $Password -Force -AsPlainText
