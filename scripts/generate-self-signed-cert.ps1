@@ -1,6 +1,6 @@
 param(
     [string]$DnsName = "localhost",
-    [string]$Password = "change-this-pfx-password",
+    [string]$Password = "dXjfqVWR9dgh",
     [string]$OutputDirectory = "certs",
     [int]$YearsValid = 2
 )
