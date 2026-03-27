@@ -1,0 +1,14 @@
+.git
+.github
+.vs
+**/bin
+**/obj
+**/TestResults
+**/.DS_Store
+publish
+publish.zip
+*.user
+*.suo
+*.pfx
+certs/*
+!certs/.gitkeep

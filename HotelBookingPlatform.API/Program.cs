@@ -3,8 +3,10 @@ using AutoMapper;
 using HotelBookingPlatform.API.Profiles;
 using HotelBookingPlatform.Application.Services;
 using HotelBookingPlatform.Infrastructure.Identity;
+using HotelBookingPlatform.Infrastructure.Data;
 using System.IdentityModel.Tokens.Jwt;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.EntityFrameworkCore;
 
 
 
@@ -50,6 +52,14 @@ builder.Services.AddApplicationDependencies()
                 .AddCloudinary(builder.Configuration);
 
 var app = builder.Build();
+
+var applyMigrations = builder.Configuration.GetValue<bool>("APPLY_MIGRATIONS_ON_STARTUP");
+if (applyMigrations)
+{
+    using var scope = app.Services.CreateScope();
+    var dbContext = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+    await dbContext.Database.MigrateAsync();
+}
 
 await IdentitySeeder.SeedAsync(app.Services, app.Configuration);
 

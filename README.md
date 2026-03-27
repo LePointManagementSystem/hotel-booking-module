@@ -332,3 +332,131 @@ dotnet ef database update --project HotelBookingPlatform.Infrastructure --startu
 docker-compose up -d
 ```
 Open your browser and navigate to: http://localhost:8888/
+
+## Docker Deployment On EC2
+
+### Files added for deployment
+
+- `Dockerfile`: builds and publishes the ASP.NET Web API into a container image.
+- `docker-compose.deploy.yml`: runs the API for EC2-style deployment with Neon as the production database.
+- `.env.deploy.example`: template for production environment variables.
+- `scripts/generate-self-signed-cert.ps1`: creates a `.pfx` self-signed certificate on Windows.
+- `scripts/generate-self-signed-cert.sh`: creates a `.pfx` self-signed certificate on Linux/macOS.
+- `scripts/docker-entrypoint.sh`: generates the certificate inside the container on first boot if it is missing.
+
+### 1. Create the self-signed certificate
+
+On Windows:
+
+```powershell
+.\scripts\generate-self-signed-cert.ps1 -DnsName "your-ec2-public-dns" -Password "change-this-pfx-password"
+```
+
+On Linux/macOS:
+
+```bash
+chmod +x ./scripts/generate-self-signed-cert.sh
+./scripts/generate-self-signed-cert.sh your-ec2-public-dns change-this-pfx-password
+```
+
+This creates:
+
+- `certs/hotelbooking-selfsigned.pfx`
+
+You can also skip manual certificate generation. The container now creates `/https/hotelbooking-selfsigned.pfx` automatically on first startup if the file is missing and `CERT_PASSWORD` is set.
+
+### 2. Prepare environment variables
+
+Copy the deployment template and fill in real values:
+
+```bash
+cp .env.deploy.example .env.deploy
+```
+
+Important values:
+
+- `NEON_CONNECTION_STRING`
+- `CERT_PASSWORD`
+- `CERT_DNS_NAME`
+- `JWT_ISSUER`
+- `JWT_AUDIENCE`
+- `JWT_KEY`
+
+Example EC2 + Neon production values:
+
+```env
+NEON_CONNECTION_STRING=Host=ep-quiet-sky-123456.us-east-1.aws.neon.tech;Database=neondb;Username=neondb_owner;Password=<YOUR_NEON_PASSWORD>;SSL Mode=Require;Trust Server Certificate=true
+
+CERT_PASSWORD=<A_STRONG_PFX_PASSWORD>
+CERT_DNS_NAME=ec2-3-91-120-10.compute-1.amazonaws.com
+CERT_VALID_DAYS=365
+APPLY_MIGRATIONS_ON_STARTUP=true
+
+JWT_ISSUER=https://ec2-3-91-120-10.compute-1.amazonaws.com
+JWT_AUDIENCE=https://ec2-3-91-120-10.compute-1.amazonaws.com
+JWT_KEY=<A_LONG_RANDOM_32+_CHAR_SECRET>
+
+CLOUDINARY_CLOUD_NAME=<YOUR_CLOUDINARY_CLOUD_NAME>
+CLOUDINARY_API_KEY=<YOUR_CLOUDINARY_API_KEY>
+CLOUDINARY_API_SECRET=<YOUR_CLOUDINARY_API_SECRET>
+
+EMAIL_FROM_ADDRESS=<YOUR_SMTP_EMAIL>
+EMAIL_SMTP_SERVER=smtp.gmail.com
+EMAIL_PORT=587
+EMAIL_USERNAME=<YOUR_SMTP_USERNAME>
+EMAIL_PASSWORD=<YOUR_SMTP_PASSWORD>
+EMAIL_ENABLE_SSL=true
+
+SEED_ADMIN_EMAIL=admin@yourdomain.com
+SEED_ADMIN_PASSWORD=<A_STRONG_ADMIN_PASSWORD>
+SEED_ADMIN_FIRST_NAME=Hotel
+SEED_ADMIN_LAST_NAME=Admin
+
+BOOKING_CLEANUP_INTERVAL=3
+```
+
+Mapping guidance:
+
+- `CERT_DNS_NAME`, `JWT_ISSUER`, and `JWT_AUDIENCE` should all use the same EC2 public DNS or your real domain.
+- `NEON_CONNECTION_STRING` should come from the Neon dashboard connection details for your production branch/database.
+- If you later put the API behind an ALB or Nginx with a trusted cert, set `JWT_ISSUER` and `JWT_AUDIENCE` to that public HTTPS hostname instead.
+
+### 3. Build and run on EC2
+
+```bash
+docker compose --env-file .env.deploy -f docker-compose.deploy.yml up -d --build
+```
+
+The API will be exposed on:
+
+- `http://<ec2-host>`
+- `https://<ec2-host>`
+
+### 4. Optional startup migrations
+
+If `APPLY_MIGRATIONS_ON_STARTUP=true`, the API container applies EF Core migrations automatically against Neon before serving traffic.
+
+### Notes
+
+- Browsers will warn on a self-signed certificate. This is expected.
+- The deploy compose file no longer starts PostgreSQL locally; it expects Neon through `NEON_CONNECTION_STRING`.
+- For public production traffic, a trusted certificate from ACM, ALB, Nginx, or Let's Encrypt is better than self-signed TLS.
+
+## Docker Image CI
+
+A GitHub Actions workflow now builds the container image and pushes it to GitHub Container Registry (GHCR):
+
+- Workflow: `.github/workflows/docker-image.yml`
+- Registry target: `ghcr.io/<owner>/<repo>`
+
+Behavior:
+
+- Pull requests build the image without pushing.
+- Pushes to `main` or `master` build and push.
+- Tags like `v1.0.0` also build and push tagged images.
+
+To use the published image on EC2:
+
+```bash
+docker pull ghcr.io/<owner>/<repo>:latest
+```

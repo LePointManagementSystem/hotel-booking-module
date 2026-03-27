@@ -1,0 +1,46 @@
+services:
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: hotel-booking-api
+    restart: unless-stopped
+    environment:
+      ASPNETCORE_ENVIRONMENT: Production
+      ASPNETCORE_URLS: http://+:8080;https://+:8443
+      ASPNETCORE_HTTP_PORTS: 8080
+      ASPNETCORE_HTTPS_PORTS: 8443
+      ASPNETCORE_Kestrel__Certificates__Default__Path: /https/hotelbooking-selfsigned.pfx
+      ASPNETCORE_Kestrel__Certificates__Default__Password: ${CERT_PASSWORD}
+      CERT_DNS_NAME: ${CERT_DNS_NAME}
+      CERT_VALID_DAYS: ${CERT_VALID_DAYS:-365}
+      APPLY_MIGRATIONS_ON_STARTUP: ${APPLY_MIGRATIONS_ON_STARTUP:-true}
+      ConnectionStrings__DefaultConnection: ${NEON_CONNECTION_STRING}
+      JWT__Issuer: ${JWT_ISSUER}
+      JWT__Audience: ${JWT_AUDIENCE}
+      JWT__Key: ${JWT_KEY}
+      CloudinarySettings__CloudName: ${CLOUDINARY_CLOUD_NAME}
+      CloudinarySettings__ApiKey: ${CLOUDINARY_API_KEY}
+      CloudinarySettings__ApiSecret: ${CLOUDINARY_API_SECRET}
+      EmailSettings__FromAddress: ${EMAIL_FROM_ADDRESS}
+      EmailSettings__SmtpServer: ${EMAIL_SMTP_SERVER}
+      EmailSettings__Port: ${EMAIL_PORT}
+      EmailSettings__Username: ${EMAIL_USERNAME}
+      EmailSettings__Password: ${EMAIL_PASSWORD}
+      EmailSettings__EnableSSL: ${EMAIL_ENABLE_SSL:-true}
+      SeedAdmin__Email: ${SEED_ADMIN_EMAIL}
+      SeedAdmin__Password: ${SEED_ADMIN_PASSWORD}
+      SeedAdmin__FirstName: ${SEED_ADMIN_FIRST_NAME:-LePoint}
+      SeedAdmin__LastName: ${SEED_ADMIN_LAST_NAME:-Admin}
+      BookingCleanup__CheckIntervalMinutes: ${BOOKING_CLEANUP_INTERVAL:-3}
+    ports:
+      - "80:8080"
+      - "443:8443"
+    volumes:
+      - ./certs:/https
+    networks:
+      - backend
+
+networks:
+  backend:
+    driver: bridge
