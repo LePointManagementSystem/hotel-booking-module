@@ -381,6 +381,7 @@ Important values:
 - `JWT_ISSUER`
 - `JWT_AUDIENCE`
 - `JWT_KEY`
+- `FRONTEND_ORIGINS`
 
 Example EC2 + Neon production values:
 
@@ -395,6 +396,7 @@ APPLY_MIGRATIONS_ON_STARTUP=true
 JWT_ISSUER=https://ec2-3-91-120-10.compute-1.amazonaws.com
 JWT_AUDIENCE=https://ec2-3-91-120-10.compute-1.amazonaws.com
 JWT_KEY=<A_LONG_RANDOM_32+_CHAR_SECRET>
+FRONTEND_ORIGINS=http://localhost:5173,https://your-vercel-app.vercel.app
 
 CLOUDINARY_CLOUD_NAME=<YOUR_CLOUDINARY_CLOUD_NAME>
 CLOUDINARY_API_KEY=<YOUR_CLOUDINARY_API_KEY>
@@ -419,6 +421,7 @@ Mapping guidance:
 
 - `CERT_DNS_NAME`, `JWT_ISSUER`, and `JWT_AUDIENCE` should all use the same EC2 public DNS or your real domain.
 - `NEON_CONNECTION_STRING` should come from the Neon dashboard connection details for your production branch/database.
+- `FRONTEND_ORIGINS` should list every browser origin allowed to call the API, separated by commas.
 - If you later put the API behind an ALB or Nginx with a trusted cert, set `JWT_ISSUER` and `JWT_AUDIENCE` to that public HTTPS hostname instead.
 
 ### 3. Build and run on EC2
