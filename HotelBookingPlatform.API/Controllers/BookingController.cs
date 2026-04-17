@@ -51,14 +51,12 @@ public class BookingController : ControllerBase
         if (User.IsInRole("Staff") && scopedHotelId.HasValue)
         {
             var scoped = await _bookingService.GetBookingsByHotelAsync(scopedHotelId.Value);
-            //return Ok(scoped);
             return _responseHandler.Success(scoped);
 
         }
         
 
         var result = await _bookingService.GetAllBookingsAsync();
-        //return Ok(result);
         return _responseHandler.Success(result);
 
     }
@@ -117,53 +115,6 @@ public class BookingController : ControllerBase
 
     }
 
-    // [HttpPut("{id}/Update_status")]
-    // [Authorize(Roles = "User,Admin,Manager,Staff")]
-    // [SwaggerOperation(Summary = "Update the status of a booking.")]
-    // public async Task<IActionResult> UpdateBookingStatus(int id, [FromBody] BookingStatus newStatus)
-    // {
-
-    //     var scopedHotelId = GetScopedHotelId();
-    //     if (User.IsInRole("Staff") && scopedHotelId.HasValue && booking.HotelId != scopedHotelId.Value)
-    //         return Forbid("You are not allowed to update a booking from another hotel.");
-
-    //     var userEmail = User.FindFirst(ClaimTypes.Email)?.Value;
-    //     var userName = User.Identity?.Name;
-    //     var role = User.FindFirst(ClaimTypes.Role)?.Value;
-    //     // if (userEmail is null)
-    //     //     return Unauthorized("User email not found in token.");
-
-    //     if (string.IsNullOrEmpty(userEmail))
-    //         return Unauthorized("User email not found in token.");
-
-    //     var booking = await _bookingService.GetBookingAsync(id);
-
-    //     if (booking is null)
-    //     {
-    //         _log.Log($"UpdateBookingStatus: Booking with ID {id} not found.", "Warning");
-    //         return NotFound($"Booking with ID {id} not found.");
-    //     }
-
-    //     // if (booking.UserName != userEmail.Split('@')[0])
-    //     //     return Unauthorized("You are not authorized to update this booking.");
-
-    //     if (newStatus != BookingStatus.Completed &&
-    //         newStatus != BookingStatus.Confirmed &&
-    //         newStatus != BookingStatus.Cancelled)
-    //     {
-    //         // await _bookingService.UpdateBookingStatusAsync(id, newStatus);
-    //         // return _responseHandler.Success("Booking status updated to Completed successfully.");
-    //         _log.Log($"UpdateBookingStatus: Invalid status '{newStatus}'Attempted by {userEmail}.", "Warning");
-    //         return BadRequest("Invalid status update request.");
-    //     }
-
-    //     await _bookingService.UpdateBookingStatusAsync(id, newStatus);
-    //     _log.Log($"UpdateBookingStatus: Booking {id} status updated to '{newStatus}' by {userName} ({role}).", "info");
-
-    //     return _responseHandler.Success($"Booking status updated to {newStatus} successfully");
-
-
-    // }
 
 
 [HttpPut("{id}/Update_status")]
